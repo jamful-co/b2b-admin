@@ -1,5 +1,5 @@
 import React from 'react';
-import { base44 } from '@/api/base44Client';
+import { Stat } from '@/api/entities';
 import { useQuery } from '@tanstack/react-query';
 import { Badge } from "@/components/ui/badge";
 import StatCard from '../components/dashboard/StatCard';
@@ -15,7 +15,7 @@ export default function Dashboard() {
 
   const { data: stats } = useQuery({
     queryKey: ['stats'],
-    queryFn: () => base44.entities.Stat.list(),
+    queryFn: () => Stat.list(),
     initialData: [],
   });
 

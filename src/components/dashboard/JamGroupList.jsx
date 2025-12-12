@@ -1,12 +1,12 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { base44 } from '@/api/base44Client';
+import { JamGroup } from '@/api/entities';
 import { useQuery } from '@tanstack/react-query';
 
 export default function JamGroupList() {
   const { data: groups } = useQuery({
     queryKey: ['jamGroups'],
-    queryFn: () => base44.entities.JamGroup.list(),
+    queryFn: () => JamGroup.list(),
     initialData: [],
   });
 

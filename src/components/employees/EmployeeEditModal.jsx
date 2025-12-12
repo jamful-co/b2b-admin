@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { X } from "lucide-react";
 import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { JamGroup } from '@/api/entities';
 
 export default function EmployeeEditModal({ isOpen, onClose, onSave, employee }) {
     const [formData, setFormData] = useState({
@@ -21,7 +21,7 @@ export default function EmployeeEditModal({ isOpen, onClose, onSave, employee })
     // Fetch groups for the dropdown
     const { data: groups } = useQuery({
         queryKey: ['jamGroups'],
-        queryFn: () => base44.entities.JamGroup.list(),
+        queryFn: () => JamGroup.list(),
         initialData: []
     });
 

@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import Sidebar from '../components/layout/Sidebar';
 import { UserCircle, LogOut } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import { auth } from '@/api/auth';
 import { Loader2 } from "lucide-react";
 import {
   DropdownMenu,
@@ -24,12 +24,12 @@ export default function Layout({ children }) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const isAuth = await base44.auth.isAuthenticated();
+        const isAuth = await auth.isAuthenticated();
         if (isAuth) {
-            const user = await base44.auth.me();
+            const user = await auth.me();
             setCurrentUser(user);
         }
-        
+
         if (!isAuth && !isWelcomePage) {
             navigate('/welcome');
         } else if (isAuth && isWelcomePage) {
@@ -82,8 +82,8 @@ export default function Layout({ children }) {
                 <div className="text-xs text-gray-500 truncate">{currentUser?.email}</div>
               </div>
               <DropdownMenuSeparator />
-              <DropdownMenuItem 
-                onClick={() => base44.auth.logout()}
+              <DropdownMenuItem
+                onClick={() => auth.logout()}
                 className="text-red-600 focus:text-red-600 cursor-pointer"
               >
                 <LogOut className="mr-2 h-4 w-4" />

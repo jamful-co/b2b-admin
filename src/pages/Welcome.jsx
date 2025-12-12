@@ -1,11 +1,15 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { base44 } from '@/api/base44Client';
+import { useNavigate } from 'react-router-dom';
 import { BarChart3 } from 'lucide-react';
 
 export default function WelcomePage() {
+    const navigate = useNavigate();
+
     const handleLogin = () => {
-        base44.auth.redirectToLogin('/dashboard');
+        // TODO: Implement login logic
+        // For now, just navigate to dashboard
+        navigate('/dashboard');
     };
 
     return (

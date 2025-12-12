@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Star } from "lucide-react";
 import { format } from 'date-fns';
-import { base44 } from '@/api/base44Client';
+import { Review } from '@/api/entities';
 import { useQuery } from '@tanstack/react-query';
 
 export default function ReviewList() {
@@ -14,7 +14,7 @@ export default function ReviewList() {
 
   const { data: reviews } = useQuery({
     queryKey: ['reviews'],
-    queryFn: () => base44.entities.Review.list('-date', 50),
+    queryFn: () => Review.list('-date', 50),
     initialData: [],
   });
 

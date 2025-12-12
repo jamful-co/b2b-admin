@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { JamGroup, Employee } from '@/api/entities';
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import GroupAddModal from '@/components/groups/GroupAddModal';
@@ -23,7 +23,7 @@ export default function GroupsPage() {
     // Fetch Groups
     const { data: groups, isLoading: isGroupsLoading } = useQuery({
         queryKey: ['groups'],
-        queryFn: () => base44.entities.JamGroup.list('-created_date'),
+        queryFn: () => JamGroup.list('-created_date'),
         initialData: []
     });
 
@@ -31,7 +31,7 @@ export default function GroupsPage() {
     // Note: In a real large app, this count should come from the backend or a specific aggregation endpoint
     const { data: employees, isLoading: isEmployeesLoading } = useQuery({
         queryKey: ['employees_for_count'],
-        queryFn: () => base44.entities.Employee.list(),
+        queryFn: () => Employee.list(),
         initialData: []
     });
 
@@ -43,7 +43,7 @@ export default function GroupsPage() {
 
     // Create Group Mutation
     const createGroupMutation = useMutation({
-        mutationFn: (data) => base44.entities.JamGroup.create(data),
+        mutationFn: (data) => JamGroup.create(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['groups'] });
             setIsAddModalOpen(false);
@@ -62,7 +62,7 @@ export default function GroupsPage() {
     });
 
     const deleteGroupMutation = useMutation({
-        mutationFn: (id) => base44.entities.JamGroup.delete(id),
+        mutationFn: (id) => JamGroup.delete(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['groups'] });
             toast({

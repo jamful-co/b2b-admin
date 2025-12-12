@@ -29,7 +29,7 @@ import { format } from 'date-fns';
 import JamAllocationModal from './JamAllocationModal';
 import EmployeeEditModal from './EmployeeEditModal';
 import { toast } from "sonner";
-import { base44 } from '@/api/base44Client';
+import { Employee } from '@/api/entities';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 export default function EmployeeTable({ data }) {
@@ -90,7 +90,7 @@ export default function EmployeeTable({ data }) {
     };
 
     const updateEmployeeMutation = useMutation({
-        mutationFn: (updatedData) => base44.entities.Employee.update(updatedData.id, updatedData),
+        mutationFn: (updatedData) => Employee.update(updatedData.id, updatedData),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['employees'] });
             toast.success("직원 정보가 수정되었습니다.");

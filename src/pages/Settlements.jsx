@@ -1,6 +1,6 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { SettlementHistory } from '@/api/entities';
 import SettlementSummary from '../components/settlement/SettlementSummary';
 import EmployeeSettlementStats from '../components/settlement/EmployeeSettlementStats';
 import SettlementHistoryTable from '../components/settlement/SettlementHistoryTable';
@@ -8,7 +8,7 @@ import SettlementHistoryTable from '../components/settlement/SettlementHistoryTa
 export default function SettlementsPage() {
     const { data: settlementHistory, isLoading } = useQuery({
         queryKey: ['settlementHistory'],
-        queryFn: () => base44.entities.SettlementHistory.list(),
+        queryFn: () => SettlementHistory.list(),
         initialData: [],
     });
 

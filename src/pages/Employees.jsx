@@ -1,12 +1,12 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { Employee } from '@/api/entities';
 import EmployeeTable from '../components/employees/EmployeeTable';
 
 export default function EmployeesPage() {
     const { data: employees, isLoading } = useQuery({
         queryKey: ['employees'],
-        queryFn: () => base44.entities.Employee.list(), // Fetch all for client-side processing
+        queryFn: () => Employee.list(), // Fetch all for client-side processing
         initialData: [],
     });
 

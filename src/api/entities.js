@@ -1,17 +1,31 @@
-import { base44 } from './base44Client';
+import { apiClient } from './client';
 
+// Generic entity factory
+const createEntity = (entityName) => ({
+  list(orderBy) {
+    const params = orderBy ? `?orderBy=${orderBy}` : '';
+    return apiClient.get(`/${entityName}${params}`);
+  },
 
-export const Review = base44.entities.Review;
+  get(id) {
+    return apiClient.get(`/${entityName}/${id}`);
+  },
 
-export const Stat = base44.entities.Stat;
+  create(data) {
+    return apiClient.post(`/${entityName}`, data);
+  },
 
-export const JamGroup = base44.entities.JamGroup;
+  update(id, data) {
+    return apiClient.put(`/${entityName}/${id}`, data);
+  },
 
-export const Employee = base44.entities.Employee;
+  delete(id) {
+    return apiClient.delete(`/${entityName}/${id}`);
+  },
+});
 
-export const SettlementHistory = base44.entities.SettlementHistory;
-
-
-
-// auth sdk:
-export const User = base44.auth;
+export const Review = createEntity('reviews');
+export const Stat = createEntity('stats');
+export const JamGroup = createEntity('jam-groups');
+export const Employee = createEntity('employees');
+export const SettlementHistory = createEntity('settlement-history');
