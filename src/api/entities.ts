@@ -54,7 +54,7 @@ const mockStats: Stat[] = [
     label: '총 가입 회원',
     value: '188명',
     change: -10,
-    dashboard_type: 'subscription'
+    dashboard_type: 'subscription',
   },
   {
     id: '2',
@@ -62,36 +62,36 @@ const mockStats: Stat[] = [
     label: '구독중인 임직원',
     value: '64명',
     percentage: 35,
-    dashboard_type: 'subscription'
+    dashboard_type: 'subscription',
   },
   {
     id: '3',
     type: 'payment_date',
     label: '월 지급일',
     value: '입직원별로 상이',
-    dashboard_type: 'subscription'
+    dashboard_type: 'subscription',
   },
   {
     id: '4',
     type: 'total_participants',
     label: '월 지급일',
     value: '입직원별로 상이',
-    dashboard_type: 'recharge'
+    dashboard_type: 'recharge',
   },
   {
     id: '5',
     type: 'total_charged_jam',
     label: '총 참여 인원',
     value: '150명',
-    dashboard_type: 'recharge'
+    dashboard_type: 'recharge',
   },
   {
     id: '6',
     type: 'payment_date',
     label: '총 충전 잼',
     value: '150,000',
-    dashboard_type: 'recharge'
-  }
+    dashboard_type: 'recharge',
+  },
 ];
 
 const mockReviews: Review[] = [
@@ -100,51 +100,52 @@ const mockReviews: Review[] = [
     rating: 2,
     content: '더 넓고 깨끗한 수영장이 있었더라면 좋겠습니다.',
     author_name: '이마리스프로젝트',
-    date: '2025-11-04T04:00:00Z'
+    date: '2025-11-04T04:00:00Z',
   },
   {
     id: '2',
     rating: 5,
     content: '정말 맛이좋게 즐기고... 너무 힐링했어요...............',
     author_name: '나인테일 마사지 도우미',
-    date: '2025-11-04T04:00:00Z'
+    date: '2025-11-04T04:00:00Z',
   },
   {
     id: '3',
     rating: 5,
     content: '좋아여',
     author_name: '하이웨스 강남구청역점',
-    date: '2025-11-04T04:00:00Z'
+    date: '2025-11-04T04:00:00Z',
   },
   {
     id: '4',
     rating: 5,
-    content: '광장히 친절하시어 계느끼겠다. 신체 움직임 제대로 에어도 바로 바로 이해가 되게가 교육 전달 차이가 너무 명확히 보입니다!',
+    content:
+      '광장히 친절하시어 계느끼겠다. 신체 움직임 제대로 에어도 바로 바로 이해가 되게가 교육 전달 차이가 너무 명확히 보입니다!',
     author_name: '마디필라테스',
-    date: '2025-11-04T04:00:00Z'
+    date: '2025-11-04T04:00:00Z',
   },
   {
     id: '5',
     rating: 5,
     content: '오기를 오랫만에 하는 거라 단단하게 못했었는데 너무 재밌었어요 감사합니다',
     author_name: '오카리나',
-    date: '2025-11-04T04:00:00Z'
+    date: '2025-11-04T04:00:00Z',
   },
   {
     id: '6',
     rating: 5,
     content: '시설이 너무 깨끗하고 강사님들이 친절하셔서 좋았어요. 배울 오고 싶네요.',
     author_name: '클라이밍 101',
-    date: '2025-11-02T13:00:00Z'
-  }
+    date: '2025-11-02T13:00:00Z',
+  },
 ];
 
 const mockJamGroups: JamGroup[] = [
   {
     id: '1',
     name: '입직원별로 상이',
-    amount: 150000
-  }
+    amount: 150000,
+  },
 ];
 
 const mockEmployees: Employee[] = [
@@ -158,7 +159,7 @@ const mockEmployees: Employee[] = [
     employment_status: 'active',
     join_date: '2024-01-15',
     jam_balance: 85000,
-    jam_capacity: 100000
+    jam_capacity: 100000,
   },
   {
     id: '2',
@@ -170,7 +171,7 @@ const mockEmployees: Employee[] = [
     employment_status: 'active',
     join_date: '2024-02-20',
     jam_balance: 45000,
-    jam_capacity: 100000
+    jam_capacity: 100000,
   },
   {
     id: '3',
@@ -182,7 +183,7 @@ const mockEmployees: Employee[] = [
     employment_status: 'active',
     join_date: '2024-03-10',
     jam_balance: 92000,
-    jam_capacity: 100000
+    jam_capacity: 100000,
   },
   {
     id: '4',
@@ -195,7 +196,7 @@ const mockEmployees: Employee[] = [
     join_date: '2023-11-05',
     resignation_date: '2025-12-31',
     jam_balance: 30000,
-    jam_capacity: 100000
+    jam_capacity: 100000,
   },
   {
     id: '5',
@@ -207,7 +208,7 @@ const mockEmployees: Employee[] = [
     employment_status: 'active',
     join_date: '2024-04-01',
     jam_balance: 67000,
-    jam_capacity: 100000
+    jam_capacity: 100000,
   },
   {
     id: '6',
@@ -219,7 +220,7 @@ const mockEmployees: Employee[] = [
     employment_status: 'active',
     join_date: '2023-09-15',
     jam_balance: 78000,
-    jam_capacity: 100000
+    jam_capacity: 100000,
   },
   {
     id: '7',
@@ -231,7 +232,7 @@ const mockEmployees: Employee[] = [
     employment_status: 'active',
     join_date: '2024-05-20',
     jam_balance: 55000,
-    jam_capacity: 100000
+    jam_capacity: 100000,
   },
   {
     id: '8',
@@ -244,7 +245,7 @@ const mockEmployees: Employee[] = [
     join_date: '2023-06-10',
     resignation_date: '2025-11-30',
     jam_balance: 0,
-    jam_capacity: 100000
+    jam_capacity: 100000,
   },
   {
     id: '9',
@@ -256,7 +257,7 @@ const mockEmployees: Employee[] = [
     employment_status: 'active',
     join_date: '2024-06-15',
     jam_balance: 88000,
-    jam_capacity: 100000
+    jam_capacity: 100000,
   },
   {
     id: '10',
@@ -268,7 +269,7 @@ const mockEmployees: Employee[] = [
     employment_status: 'active',
     join_date: '2024-07-01',
     jam_balance: 72000,
-    jam_capacity: 100000
+    jam_capacity: 100000,
   },
   {
     id: '11',
@@ -280,7 +281,7 @@ const mockEmployees: Employee[] = [
     employment_status: 'active',
     join_date: '2024-01-20',
     jam_balance: 95000,
-    jam_capacity: 100000
+    jam_capacity: 100000,
   },
   {
     id: '12',
@@ -292,7 +293,7 @@ const mockEmployees: Employee[] = [
     employment_status: 'active',
     join_date: '2024-02-14',
     jam_balance: 63000,
-    jam_capacity: 100000
+    jam_capacity: 100000,
   },
   {
     id: '13',
@@ -304,7 +305,7 @@ const mockEmployees: Employee[] = [
     employment_status: 'active',
     join_date: '2023-12-01',
     jam_balance: 81000,
-    jam_capacity: 100000
+    jam_capacity: 100000,
   },
   {
     id: '14',
@@ -316,7 +317,7 @@ const mockEmployees: Employee[] = [
     employment_status: 'active',
     join_date: '2024-03-25',
     jam_balance: 47000,
-    jam_capacity: 100000
+    jam_capacity: 100000,
   },
   {
     id: '15',
@@ -329,7 +330,7 @@ const mockEmployees: Employee[] = [
     join_date: '2023-10-10',
     resignation_date: '2025-12-25',
     jam_balance: 25000,
-    jam_capacity: 100000
+    jam_capacity: 100000,
   },
   {
     id: '16',
@@ -341,7 +342,7 @@ const mockEmployees: Employee[] = [
     employment_status: 'active',
     join_date: '2024-04-15',
     jam_balance: 90000,
-    jam_capacity: 100000
+    jam_capacity: 100000,
   },
   {
     id: '17',
@@ -353,7 +354,7 @@ const mockEmployees: Employee[] = [
     employment_status: 'active',
     join_date: '2024-05-05',
     jam_balance: 58000,
-    jam_capacity: 100000
+    jam_capacity: 100000,
   },
   {
     id: '18',
@@ -365,7 +366,7 @@ const mockEmployees: Employee[] = [
     employment_status: 'active',
     join_date: '2024-06-20',
     jam_balance: 76000,
-    jam_capacity: 100000
+    jam_capacity: 100000,
   },
   {
     id: '19',
@@ -377,7 +378,7 @@ const mockEmployees: Employee[] = [
     employment_status: 'active',
     join_date: '2024-07-10',
     jam_balance: 84000,
-    jam_capacity: 100000
+    jam_capacity: 100000,
   },
   {
     id: '20',
@@ -389,7 +390,7 @@ const mockEmployees: Employee[] = [
     employment_status: 'active',
     join_date: '2024-08-01',
     jam_balance: 69000,
-    jam_capacity: 100000
+    jam_capacity: 100000,
   },
   {
     id: '21',
@@ -401,7 +402,7 @@ const mockEmployees: Employee[] = [
     employment_status: 'active',
     join_date: '2024-01-08',
     jam_balance: 93000,
-    jam_capacity: 100000
+    jam_capacity: 100000,
   },
   {
     id: '22',
@@ -413,7 +414,7 @@ const mockEmployees: Employee[] = [
     employment_status: 'active',
     join_date: '2024-02-28',
     jam_balance: 51000,
-    jam_capacity: 100000
+    jam_capacity: 100000,
   },
   {
     id: '23',
@@ -426,7 +427,7 @@ const mockEmployees: Employee[] = [
     join_date: '2023-05-15',
     resignation_date: '2025-10-31',
     jam_balance: 0,
-    jam_capacity: 100000
+    jam_capacity: 100000,
   },
   {
     id: '24',
@@ -438,7 +439,7 @@ const mockEmployees: Employee[] = [
     employment_status: 'active',
     join_date: '2024-03-18',
     jam_balance: 79000,
-    jam_capacity: 100000
+    jam_capacity: 100000,
   },
   {
     id: '25',
@@ -450,7 +451,7 @@ const mockEmployees: Employee[] = [
     employment_status: 'active',
     join_date: '2024-04-22',
     jam_balance: 66000,
-    jam_capacity: 100000
+    jam_capacity: 100000,
   },
   {
     id: '26',
@@ -462,7 +463,7 @@ const mockEmployees: Employee[] = [
     employment_status: 'active',
     join_date: '2024-05-12',
     jam_balance: 87000,
-    jam_capacity: 100000
+    jam_capacity: 100000,
   },
   {
     id: '27',
@@ -474,7 +475,7 @@ const mockEmployees: Employee[] = [
     employment_status: 'active',
     join_date: '2024-06-08',
     jam_balance: 74000,
-    jam_capacity: 100000
+    jam_capacity: 100000,
   },
   {
     id: '28',
@@ -486,7 +487,7 @@ const mockEmployees: Employee[] = [
     employment_status: 'active',
     join_date: '2024-07-25',
     jam_balance: 82000,
-    jam_capacity: 100000
+    jam_capacity: 100000,
   },
   {
     id: '29',
@@ -498,7 +499,7 @@ const mockEmployees: Employee[] = [
     employment_status: 'active',
     join_date: '2024-08-15',
     jam_balance: 71000,
-    jam_capacity: 100000
+    jam_capacity: 100000,
   },
   {
     id: '30',
@@ -510,8 +511,8 @@ const mockEmployees: Employee[] = [
     employment_status: 'active',
     join_date: '2024-09-01',
     jam_balance: 89000,
-    jam_capacity: 100000
-  }
+    jam_capacity: 100000,
+  },
 ];
 
 const mockSettlementHistory: SettlementHistory[] = [
@@ -519,8 +520,8 @@ const mockSettlementHistory: SettlementHistory[] = [
     id: '1',
     usage_month: '2025-11',
     total_amount: 150000,
-    employee_count: 150
-  }
+    employee_count: 150,
+  },
 ];
 
 // Entity interface
@@ -540,7 +541,7 @@ const createEntity = <T extends { id: string }>(entityName: string, mockData: T[
   },
 
   async get(id: string): Promise<T> {
-    const item = mockData.find(item => item.id === id);
+    const item = mockData.find((item) => item.id === id);
     if (!item) throw new Error('Not found');
     return Promise.resolve(item);
   },
@@ -552,14 +553,14 @@ const createEntity = <T extends { id: string }>(entityName: string, mockData: T[
   },
 
   async update(id: string, data: Partial<T>): Promise<T> {
-    const index = mockData.findIndex(item => item.id === id);
+    const index = mockData.findIndex((item) => item.id === id);
     if (index === -1) throw new Error('Not found');
     mockData[index] = { ...mockData[index], ...data };
     return Promise.resolve(mockData[index]);
   },
 
   async delete(id: string): Promise<{ success: boolean }> {
-    const index = mockData.findIndex(item => item.id === id);
+    const index = mockData.findIndex((item) => item.id === id);
     if (index === -1) throw new Error('Not found');
     mockData.splice(index, 1);
     return Promise.resolve({ success: true });
@@ -570,7 +571,10 @@ export const ReviewEntity = createEntity<Review>('reviews', mockReviews);
 export const StatEntity = createEntity<Stat>('stats', mockStats);
 export const JamGroupEntity = createEntity<JamGroup>('jam-groups', mockJamGroups);
 export const EmployeeEntity = createEntity<Employee>('employees', mockEmployees);
-export const SettlementHistoryEntity = createEntity<SettlementHistory>('settlement-history', mockSettlementHistory);
+export const SettlementHistoryEntity = createEntity<SettlementHistory>(
+  'settlement-history',
+  mockSettlementHistory
+);
 
 // Backward compatibility aliases
 export { ReviewEntity as Review };

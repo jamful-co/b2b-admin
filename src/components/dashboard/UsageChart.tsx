@@ -1,6 +1,6 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 const data = [
   { name: '11월', value: 1000 },
@@ -31,22 +31,26 @@ export default function UsageChart() {
         <div className="h-[250px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-              <XAxis 
-                dataKey="name" 
-                axisLine={false} 
-                tickLine={false} 
-                tick={{ fill: '#9CA3AF', fontSize: 12 }} 
+              <XAxis
+                dataKey="name"
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: '#9CA3AF', fontSize: 12 }}
                 dy={10}
               />
-              <Tooltip 
+              <Tooltip
                 cursor={{ fill: 'transparent' }}
-                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                contentStyle={{
+                  borderRadius: '8px',
+                  border: 'none',
+                  boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                }}
               />
               <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={32}>
                 {data.map((entry, index) => (
-                  <Cell 
-                    key={`cell-${index}`} 
-                    fill={entry.name === currentMonth ? '#FDE047' : '#F3F4F6'} 
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={entry.name === currentMonth ? '#FDE047' : '#F3F4F6'}
                   />
                 ))}
               </Bar>

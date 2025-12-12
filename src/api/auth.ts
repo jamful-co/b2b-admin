@@ -12,7 +12,7 @@ export const auth = {
     const user: User = {
       email,
       full_name: email.split('@')[0], // Use email prefix as name
-      id: '1'
+      id: '1',
     };
     localStorage.setItem('user', JSON.stringify(user));
     localStorage.setItem('isAuthenticated', 'true');
@@ -39,4 +39,3 @@ export const auth = {
     return isAuth === 'true';
   },
 };
-

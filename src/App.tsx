@@ -1,7 +1,7 @@
-import './App.css'
-import Pages from "@/pages/index.jsx"
-import { Toaster } from "@/components/ui/toaster"
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import './App.css';
+import Pages from '@/pages/index.jsx';
+import { Toaster } from '@/components/ui/toaster';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -11,7 +11,7 @@ const queryClient = new QueryClient({
       retry: 1,
     },
   },
-})
+});
 
 function App() {
   return (
@@ -19,7 +19,7 @@ function App() {
       <Pages />
       <Toaster />
     </QueryClientProvider>
-  )
+  );
 }
 
-export default App
+export default App;

@@ -3,7 +3,7 @@ import Sidebar from '../components/layout/Sidebar';
 import { UserCircle, LogOut } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { auth, User } from '@/api/auth';
-import { Loader2 } from "lucide-react";
+import { Loader2 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,7 +11,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from '@/components/ui/dropdown-menu';
 
 interface LayoutProps {
   children: ReactNode;
@@ -29,34 +29,34 @@ export default function Layout({ children }: LayoutProps) {
       try {
         const isAuth = await auth.isAuthenticated();
         if (isAuth) {
-            const user = await auth.me();
-            setCurrentUser(user);
+          const user = await auth.me();
+          setCurrentUser(user);
         }
 
         if (!isAuth && !isWelcomePage) {
-            navigate('/welcome');
+          navigate('/welcome');
         } else if (isAuth && isWelcomePage) {
-            navigate('/dashboard');
+          navigate('/dashboard');
         }
         setIsAuthenticated(isAuth);
       } catch (e) {
-         if (!isWelcomePage) navigate('/welcome');
-         setIsAuthenticated(false);
+        if (!isWelcomePage) navigate('/welcome');
+        setIsAuthenticated(false);
       }
     };
     checkAuth();
   }, [location.pathname, isWelcomePage, navigate]);
 
   if (isWelcomePage) {
-     return <main>{children}</main>;
+    return <main>{children}</main>;
   }
 
   if (isAuthenticated === null) {
-      return (
-          <div className="h-screen flex items-center justify-center bg-gray-50">
-              <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
-          </div>
-      );
+    return (
+      <div className="h-screen flex items-center justify-center bg-gray-50">
+        <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
+      </div>
+    );
   }
 
   if (!isAuthenticated) return null;
@@ -64,13 +64,13 @@ export default function Layout({ children }: LayoutProps) {
   return (
     <div className="flex h-screen bg-gray-50 font-sans overflow-hidden">
       <Sidebar />
-      
+
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top App Bar */}
         <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-end px-8 z-10">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button 
+              <button
                 className="text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
                 title="User Menu"
               >
@@ -81,7 +81,9 @@ export default function Layout({ children }: LayoutProps) {
               <DropdownMenuLabel>내 정보</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <div className="px-2 py-1.5 text-sm">
-                <div className="font-medium text-gray-900">{currentUser?.full_name || '사용자'}</div>
+                <div className="font-medium text-gray-900">
+                  {currentUser?.full_name || '사용자'}
+                </div>
                 <div className="text-xs text-gray-500 truncate">{currentUser?.email}</div>
               </div>
               <DropdownMenuSeparator />
@@ -97,9 +99,7 @@ export default function Layout({ children }: LayoutProps) {
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-auto p-8">
-          {children}
-        </main>
+        <main className="flex-1 overflow-auto p-8">{children}</main>
       </div>
     </div>
   );
