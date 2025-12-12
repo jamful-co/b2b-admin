@@ -1,9 +1,8 @@
-
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, ReactNode } from 'react';
 import Sidebar from '../components/layout/Sidebar';
 import { UserCircle, LogOut } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { auth } from '@/api/auth';
+import { auth, User } from '@/api/auth';
 import { Loader2 } from "lucide-react";
 import {
   DropdownMenu,
@@ -14,11 +13,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-export default function Layout({ children }) {
+interface LayoutProps {
+  children: ReactNode;
+}
+
+export default function Layout({ children }: LayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const [isAuthenticated, setIsAuthenticated] = useState(null);
-  const [currentUser, setCurrentUser] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const isWelcomePage = location.pathname === '/welcome';
 
   useEffect(() => {

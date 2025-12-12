@@ -1,10 +1,10 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Employee } from '@/api/entities';
+import { Employee, type Employee as EmployeeType } from '@/api/entities';
 import EmployeeTable from '../components/employees/EmployeeTable';
 
 export default function EmployeesPage() {
-    const { data: employees, isLoading } = useQuery({
+    const { data: employees = [], isLoading } = useQuery<EmployeeType[]>({
         queryKey: ['employees'],
         queryFn: () => Employee.list(), // Fetch all for client-side processing
         initialData: [],

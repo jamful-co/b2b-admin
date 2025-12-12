@@ -1,5 +1,5 @@
 import React from 'react';
-import { Stat } from '@/api/entities';
+import { Stat, type Stat as StatType } from '@/api/entities';
 import { useQuery } from '@tanstack/react-query';
 import { Badge } from "@/components/ui/badge";
 import StatCard from '../components/dashboard/StatCard';
@@ -13,7 +13,7 @@ export default function Dashboard() {
   const [searchParams] = useSearchParams();
   const dashboardType = searchParams.get('dashboard_type') || 'subscription';
 
-  const { data: stats } = useQuery({
+  const { data: stats = [] } = useQuery<StatType[]>({
     queryKey: ['stats'],
     queryFn: () => Stat.list(),
     initialData: [],
@@ -27,7 +27,7 @@ export default function Dashboard() {
   }, [stats, dashboardType]);
 
   const sortedStats = React.useMemo(() => {
-    const order = dashboardType === 'recharge' 
+    const order: Record<string, number> = dashboardType === 'recharge'
         ? { 'total_participants': 1, 'total_charged_jam': 2, 'payment_date': 3 }
         : { 'total_members': 1, 'subscribers': 2, 'payment_date': 3 };
     return [...filteredStats].sort((a, b) => (order[a.type] || 99) - (order[b.type] || 99));

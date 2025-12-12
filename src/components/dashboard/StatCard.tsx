@@ -2,15 +2,20 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowUp, ArrowDown } from "lucide-react";
+import { type Stat } from '@/api/entities';
 
-export default function StatCard({ stat }) {
+interface StatCardProps {
+  stat: Stat;
+}
+
+export default function StatCard({ stat }: StatCardProps) {
   // Logic for displaying change or percentage based on type
   const isSubscriber = stat.type === 'subscribers';
   const isTotal = stat.type === 'total_members';
   const isChargedJam = stat.type === 'total_charged_jam';
-  
+
   // Badge Logic for Subscribers
-  const getBadgeColor = (percent) => {
+  const getBadgeColor = (percent: number) => {
     if (percent >= 50) return "bg-green-100 text-green-600 hover:bg-green-100";
     return "bg-red-100 text-red-600 hover:bg-red-100";
   };

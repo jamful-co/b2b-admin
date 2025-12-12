@@ -1,27 +1,27 @@
 import React, { useState, useMemo } from 'react';
-import { 
-    Table, 
-    TableBody, 
-    TableCell, 
-    TableHead, 
-    TableHeader, 
-    TableRow 
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow
 } from "@/components/ui/table";
-import { 
-    Select, 
-    SelectContent, 
-    SelectItem, 
-    SelectTrigger, 
-    SelectValue 
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { 
-    ChevronLeft, 
-    ChevronRight, 
+import {
+    ChevronLeft,
+    ChevronRight,
     ArrowUpDown,
     Search
 } from "lucide-react";
@@ -29,21 +29,30 @@ import { format } from 'date-fns';
 import JamAllocationModal from './JamAllocationModal';
 import EmployeeEditModal from './EmployeeEditModal';
 import { toast } from "sonner";
-import { Employee } from '@/api/entities';
+import { Employee, type Employee as EmployeeType } from '@/api/entities';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-export default function EmployeeTable({ data }) {
+interface EmployeeTableProps {
+    data: EmployeeType[];
+}
+
+interface SortingState {
+    key: string;
+    direction: 'asc' | 'desc';
+}
+
+export default function EmployeeTable({ data }: EmployeeTableProps) {
     const queryClient = useQueryClient();
 
     // State
-    const [sorting, setSorting] = useState({ key: 'name', direction: 'asc' });
+    const [sorting, setSorting] = useState<SortingState>({ key: 'name', direction: 'asc' });
     const [isJamModalOpen, setIsJamModalOpen] = useState(false);
-    const [editingEmployee, setEditingEmployee] = useState(null);
+    const [editingEmployee, setEditingEmployee] = useState<EmployeeType | null>(null);
     const [globalFilter, setGlobalFilter] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [pageSize, setPageSize] = useState(20);
     const [currentPage, setCurrentPage] = useState(1);
-    const [selectedRows, setSelectedRows] = useState(new Set());
+    const [selectedRows, setSelectedRows] = useState(new Set<string>());
 
     // Filtering
     const filteredData = useMemo(() => {

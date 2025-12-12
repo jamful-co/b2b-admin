@@ -1,7 +1,53 @@
 import { apiClient } from './client';
 
+// Type definitions
+export interface Stat {
+  id: string;
+  type: string;
+  label: string;
+  value: string;
+  change?: number;
+  percentage?: number;
+  dashboard_type?: string;
+}
+
+export interface Review {
+  id: string;
+  rating: number;
+  content: string;
+  author_name: string;
+  date: string;
+}
+
+export interface JamGroup {
+  id: string;
+  name: string;
+  amount: number;
+}
+
+export interface Employee {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  employee_code: string;
+  group_name: string;
+  employment_status: 'active' | 'resigning' | 'inactive';
+  join_date: string;
+  resignation_date?: string;
+  jam_balance: number;
+  jam_capacity: number;
+}
+
+export interface SettlementHistory {
+  id: string;
+  usage_month: string;
+  total_amount: number;
+  employee_count: number;
+}
+
 // Mock data
-const mockStats = [
+const mockStats: Stat[] = [
   {
     id: '1',
     type: 'total_members',
@@ -48,7 +94,7 @@ const mockStats = [
   }
 ];
 
-const mockReviews = [
+const mockReviews: Review[] = [
   {
     id: '1',
     rating: 2,
@@ -93,7 +139,7 @@ const mockReviews = [
   }
 ];
 
-const mockJamGroups = [
+const mockJamGroups: JamGroup[] = [
   {
     id: '1',
     name: '입직원별로 상이',
@@ -101,7 +147,7 @@ const mockJamGroups = [
   }
 ];
 
-const mockEmployees = [
+const mockEmployees: Employee[] = [
   {
     id: '1',
     name: '김철수',
@@ -468,7 +514,7 @@ const mockEmployees = [
   }
 ];
 
-const mockSettlementHistory = [
+const mockSettlementHistory: SettlementHistory[] = [
   {
     id: '1',
     usage_month: '2025-11',
@@ -477,33 +523,42 @@ const mockSettlementHistory = [
   }
 ];
 
+// Entity interface
+interface Entity<T> {
+  list(orderBy?: string): Promise<T[]>;
+  get(id: string): Promise<T>;
+  create(data: Partial<T>): Promise<T>;
+  update(id: string, data: Partial<T>): Promise<T>;
+  delete(id: string): Promise<{ success: boolean }>;
+}
+
 // Generic entity factory with mock data
-const createEntity = (entityName, mockData = []) => ({
-  async list(orderBy) {
+const createEntity = <T extends { id: string }>(entityName: string, mockData: T[]): Entity<T> => ({
+  async list(orderBy?: string): Promise<T[]> {
     // Return mock data instead of API call
     return Promise.resolve(mockData);
   },
 
-  async get(id) {
+  async get(id: string): Promise<T> {
     const item = mockData.find(item => item.id === id);
     if (!item) throw new Error('Not found');
     return Promise.resolve(item);
   },
 
-  async create(data) {
-    const newItem = { ...data, id: String(Date.now()) };
+  async create(data: Partial<T>): Promise<T> {
+    const newItem = { ...data, id: String(Date.now()) } as T;
     mockData.push(newItem);
     return Promise.resolve(newItem);
   },
 
-  async update(id, data) {
+  async update(id: string, data: Partial<T>): Promise<T> {
     const index = mockData.findIndex(item => item.id === id);
     if (index === -1) throw new Error('Not found');
     mockData[index] = { ...mockData[index], ...data };
     return Promise.resolve(mockData[index]);
   },
 
-  async delete(id) {
+  async delete(id: string): Promise<{ success: boolean }> {
     const index = mockData.findIndex(item => item.id === id);
     if (index === -1) throw new Error('Not found');
     mockData.splice(index, 1);
@@ -511,8 +566,15 @@ const createEntity = (entityName, mockData = []) => ({
   },
 });
 
-export const Review = createEntity('reviews', mockReviews);
-export const Stat = createEntity('stats', mockStats);
-export const JamGroup = createEntity('jam-groups', mockJamGroups);
-export const Employee = createEntity('employees', mockEmployees);
-export const SettlementHistory = createEntity('settlement-history', mockSettlementHistory);
+export const ReviewEntity = createEntity<Review>('reviews', mockReviews);
+export const StatEntity = createEntity<Stat>('stats', mockStats);
+export const JamGroupEntity = createEntity<JamGroup>('jam-groups', mockJamGroups);
+export const EmployeeEntity = createEntity<Employee>('employees', mockEmployees);
+export const SettlementHistoryEntity = createEntity<SettlementHistory>('settlement-history', mockSettlementHistory);
+
+// Backward compatibility aliases
+export { ReviewEntity as Review };
+export { StatEntity as Stat };
+export { JamGroupEntity as JamGroup };
+export { EmployeeEntity as Employee };
+export { SettlementHistoryEntity as SettlementHistory };
