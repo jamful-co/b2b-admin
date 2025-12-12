@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Table,
   TableBody,
@@ -77,21 +77,21 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
   const paginatedData = sortedData.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   // Handlers
-  const handleSort = (key) => {
+  const handleSort = (key: string) => {
     setSorting((prev) => ({
       key,
       direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc',
     }));
   };
 
-  const handleJamAllocation = (amount) => {
+  const handleJamAllocation = (amount: number) => {
     // Here you would normally call an API to allocate jams
     toast.success(`${selectedRows.size}명의 직원에게 각각 ${amount}잼이 할당되었습니다.`);
     setSelectedRows(new Set());
   };
 
   const updateEmployeeMutation = useMutation({
-    mutationFn: (updatedData) => Employee.update(updatedData.id, updatedData),
+    mutationFn: (updatedData: EmployeeType) => Employee.update(updatedData.id, updatedData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['employees'] });
       toast.success('직원 정보가 수정되었습니다.');
@@ -102,7 +102,7 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
     },
   });
 
-  const handleSaveEmployee = (updatedData) => {
+  const handleSaveEmployee = (updatedData: EmployeeType) => {
     updateEmployeeMutation.mutate(updatedData);
   };
 
@@ -114,7 +114,7 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
     }
   };
 
-  const toggleSelectRow = (id) => {
+  const toggleSelectRow = (id: string) => {
     const newSelected = new Set(selectedRows);
     if (newSelected.has(id)) {
       newSelected.delete(id);
@@ -179,7 +179,7 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
             <Input
               placeholder="검색"
               value={globalFilter}
-              onChange={(e) => setGlobalFilter(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setGlobalFilter(e.target.value)}
               className="pl-9 bg-gray-50 border-0"
             />
           </div>
