@@ -11,11 +11,11 @@ export default function EmployeesPage() {
     });
 
     return (
-        <div className="h-[calc(100vh-100px)] flex flex-col space-y-4">
+        <div className="h-full flex flex-col space-y-4">
             <div className="flex items-center justify-between shrink-0">
                 <h1 className="text-2xl font-bold text-gray-900">임직원 관리</h1>
             </div>
-            
+
             <div className="flex-1 min-h-0">
                 <EmployeeTable data={employees} />
             </div>
