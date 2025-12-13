@@ -2,62 +2,69 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowUp, ArrowDown } from 'lucide-react';
-import { type Stat } from '@/api/entities';
 
-interface StatCardProps {
-  stat: Stat;
+interface BadgeConfig {
+  type: 'success' | 'warn';
+  text: string;
+  showArrow?: boolean;
 }
 
-export default function StatCard({ stat }: StatCardProps) {
-  // Logic for displaying change or percentage based on type
-  const isSubscriber = stat.type === 'subscribers';
-  const isTotal = stat.type === 'total_members';
-  const isChargedJam = stat.type === 'total_charged_jam';
+interface StatCardProps {
+  label: string;
+  value: string | React.ReactNode;
+  badge?: BadgeConfig;
+}
 
-  // Badge Logic for Subscribers
-  const getBadgeColor = (percent: number) => {
-    if (percent >= 50) return 'bg-green-100 text-green-600 hover:bg-green-100';
-    return 'bg-red-100 text-red-600 hover:bg-red-100';
+const getBadgeStyles = (type: 'success' | 'warn') => {
+  const styles = {
+    success: {
+      background: 'var(--badge-success-bg)',
+      color: 'var(--badge-success-text)'
+    },
+    warn: {
+      background: 'var(--badge-warn-bg)',
+      color: 'var(--badge-warn-text)'
+    }
   };
+  return styles[type];
+};
+
+const getArrowDirection = (text: string): 'up' | 'down' | null => {
+  // 숫자 앞에 + 또는 - 기호가 있는지 확인
+  const match = text.match(/^([+-])/);
+  if (!match) return null;
+  return match[1] === '+' ? 'up' : 'down';
+};
+
+export default function StatCard({ label, value, badge }: StatCardProps) {
+  const badgeStyles = badge ? getBadgeStyles(badge.type) : null;
+  const arrowDirection = badge?.showArrow ? getArrowDirection(badge.text) : null;
 
   return (
-    <Card className="shadow-sm border-gray-100 h-full flex flex-col justify-between">
+    <Card className="h-full flex flex-col justify-between">
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium text-gray-500">{stat.label}</CardTitle>
+        <CardTitle className="text-sm font-semibold text-[color:var(--text-secondary)]">
+          {label}
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="flex items-end justify-between">
-          <div className="flex items-center gap-2">
-            {isChargedJam && (
-              <div className="flex items-center justify-center w-7 h-7 rounded-full bg-black text-yellow-400 font-bold text-sm shrink-0">
-                J
-              </div>
-            )}
-            <div className="text-3xl font-bold text-gray-900">{stat.value}</div>
+          <div className="text-[22px] font-bold text-[color:var(--text-primary)]">
+            {value}
           </div>
 
-          {isSubscriber && stat.percentage !== undefined && (
+          {badge && badgeStyles && (
             <Badge
-              className={`ml-2 ${getBadgeColor(stat.percentage)} border-0 px-2 py-0.5 text-xs font-semibold`}
+              className="ml-2 border-0 text-xs font-semibold flex items-center gap-0.5"
+              style={{
+                padding: '4px 8px',
+                borderRadius: '9999px',
+                ...badgeStyles
+              }}
             >
-              {stat.percentage}%
-            </Badge>
-          )}
-
-          {isTotal && stat.change !== undefined && stat.change !== 0 && (
-            <Badge
-              className={`ml-2 border-0 px-2 py-0.5 text-xs font-semibold flex items-center gap-0.5 ${
-                stat.change > 0
-                  ? 'bg-green-100 text-green-600 hover:bg-green-100'
-                  : 'bg-red-100 text-red-600 hover:bg-red-100'
-              }`}
-            >
-              {stat.change > 0 ? (
-                <ArrowUp className="w-3 h-3" />
-              ) : (
-                <ArrowDown className="w-3 h-3" />
-              )}
-              {Math.abs(stat.change)}명
+              {arrowDirection === 'up' && <ArrowUp className="w-3 h-3" />}
+              {arrowDirection === 'down' && <ArrowDown className="w-3 h-3" />}
+              {badge.text}
             </Badge>
           )}
         </div>

@@ -1,6 +1,4 @@
-import * as React from 'react';
-import { cva } from 'class-variance-authority';
-
+import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 const alertVariants = cva(
@@ -19,23 +17,30 @@ const alertVariants = cva(
   }
 );
 
-const Alert = React.forwardRef(({ className, variant, ...props }, ref) => (
-  <div ref={ref} role="alert" className={cn(alertVariants({ variant }), className)} {...props} />
-));
-Alert.displayName = 'Alert';
+interface AlertProps
+  extends React.HTMLAttributes<HTMLDivElement>,
+    VariantProps<typeof alertVariants> {
+  className?: string;
+}
 
-const AlertTitle = React.forwardRef(({ className, ...props }, ref) => (
-  <h5
-    ref={ref}
-    className={cn('mb-1 font-medium leading-none tracking-tight', className)}
-    {...props}
-  />
-));
-AlertTitle.displayName = 'AlertTitle';
+const Alert = ({ className, variant, ...props }: AlertProps) => (
+  <div role="alert" className={cn(alertVariants({ variant }), className)} {...props} />
+);
 
-const AlertDescription = React.forwardRef(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn('text-sm [&_p]:leading-relaxed', className)} {...props} />
-));
-AlertDescription.displayName = 'AlertDescription';
+interface AlertTitleProps extends React.HTMLAttributes<HTMLHeadingElement> {
+  className?: string;
+}
+
+const AlertTitle = ({ className, ...props }: AlertTitleProps) => (
+  <h5 className={cn('mb-1 font-medium leading-none tracking-tight', className)} {...props} />
+);
+
+interface AlertDescriptionProps extends React.HTMLAttributes<HTMLDivElement> {
+  className?: string;
+}
+
+const AlertDescription = ({ className, ...props }: AlertDescriptionProps) => (
+  <div className={cn('text-sm [&_p]:leading-relaxed', className)} {...props} />
+);
 
 export { Alert, AlertTitle, AlertDescription };

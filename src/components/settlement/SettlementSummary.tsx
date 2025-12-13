@@ -12,10 +12,7 @@ export default function SettlementSummary() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <h2 className="text-lg font-bold text-gray-900">정산 금액 계산</h2>
-          <Badge
-            variant="secondary"
-            className="bg-gray-100 text-gray-900 font-medium rounded-md px-2 py-0.5"
-          >
+          <Badge className="bg-gray-100 text-gray-900 font-medium rounded-md px-2 py-0.5">
             2026.12.1 - 2026.12.31
           </Badge>
         </div>

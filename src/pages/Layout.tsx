@@ -67,7 +67,13 @@ export default function Layout({ children }: LayoutProps) {
 
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top App Bar */}
-        <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-end px-8 z-10">
+        <header
+          className="h-16 flex items-center justify-end px-8 z-10"
+          style={{
+            borderBottom: '1px solid var(--border-light, #F1F1F0)',
+            background: 'var(--warm-neutral-25, #FBFBFB)'
+          }}
+        >
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
@@ -99,7 +105,11 @@ export default function Layout({ children }: LayoutProps) {
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-auto p-8">{children}</main>
+        <main className="flex-1 overflow-auto flex justify-center" style={{ background: '#FFFFFF' }}>
+          <div className="w-full py-12" style={{ maxWidth: '1088px' }}>
+            {children}
+          </div>
+        </main>
       </div>
     </div>
   );

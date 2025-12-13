@@ -106,6 +106,22 @@ button:focus-visible {
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+    --lemon-lemon-50: #FFFDD2;
+    --lemon-lemon-300: #FFFA97;
+    --border-light: #F1F1F0;
+    --warm-neutral-25: #FBFBFB;
+    --border-default: #E3E7EC;
+    --text-secondary: #525E6A;
+    --text-primary: #222;
+    --red-red-50: #FEF3F2;
+    --gray-20: #E2E8F0;
+    --text-tertiary: #6C7885;
+
+    /* Badge colors */
+    --badge-success-bg: #F0FDF4;
+    --badge-success-text: #16A34A;
+    --badge-warn-bg: #FEF3F2;
+    --badge-warn-text: #DC2626;
   }
   .dark {
     --background: 0 0% 3.9%;

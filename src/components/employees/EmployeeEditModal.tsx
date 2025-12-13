@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -10,13 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { SimpleSelect } from '@/components/ui/select';
 import { X } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { JamGroup } from '@/api/entities';
@@ -60,6 +54,13 @@ export default function EmployeeEditModal({ isOpen, onClose, onSave, employee })
     });
     onClose();
   };
+
+  const groupItems = useMemo(() => {
+    return [
+      { value: '그룹 없음', label: '그룹 없음' },
+      ...groups.map((group) => ({ value: group.name, label: group.name })),
+    ];
+  }, [groups]);
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -121,22 +122,12 @@ export default function EmployeeEditModal({ isOpen, onClose, onSave, employee })
           {/* Group */}
           <div className="space-y-2">
             <Label className="text-sm font-medium text-gray-900">그룹</Label>
-            <Select
+            <SimpleSelect
               value={formData.group_name}
               onValueChange={(value) => handleChange('group_name', value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="그룹을 선택해주세요" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="그룹 없음">그룹 없음</SelectItem>
-                {groups.map((group) => (
-                  <SelectItem key={group.id} value={group.name}>
-                    {group.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              items={groupItems}
+              placeholder="그룹을 선택해주세요"
+            />
           </div>
 
           {/* Status Toggle */}

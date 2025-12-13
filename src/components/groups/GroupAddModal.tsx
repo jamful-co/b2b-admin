@@ -8,13 +8,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { SimpleSelect } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { X, Loader2 } from 'lucide-react';
 
@@ -109,19 +103,17 @@ export default function GroupAddModal({ isOpen, onClose, onSubmit, isSubmitting 
             <Label htmlFor="recharge_date" className="text-sm font-bold text-gray-900">
               충전일
             </Label>
-            <Select
+            <SimpleSelect
               value={formData.recharge_date}
               onValueChange={(value) => setFormData({ ...formData, recharge_date: value })}
-            >
-              <SelectTrigger className="h-12 border-gray-200 focus:ring-gray-900">
-                <SelectValue placeholder="충전일 선택" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1">매월 1일</SelectItem>
-                <SelectItem value="15">매월 15일</SelectItem>
-                <SelectItem value="end">매월 말일</SelectItem>
-              </SelectContent>
-            </Select>
+              items={[
+                { value: '1', label: '매월 1일' },
+                { value: '15', label: '매월 15일' },
+                { value: 'end', label: '매월 말일' },
+              ]}
+              placeholder="충전일 선택"
+              triggerClassName="h-12 border-gray-200 focus:ring-gray-900"
+            />
           </div>
 
           <DialogFooter className="flex gap-3 pt-2">

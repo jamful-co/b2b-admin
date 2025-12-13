@@ -8,7 +8,7 @@ export default function AvailableJamCard() {
   const percentage = (current / total) * 100;
 
   return (
-    <Card className="shadow-sm border-gray-100">
+    <Card>
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-medium text-gray-500">사용 가능한 잼</CardTitle>
       </CardHeader>

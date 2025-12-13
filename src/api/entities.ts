@@ -9,6 +9,12 @@ export interface Stat {
   change?: number;
   percentage?: number;
   dashboard_type?: string;
+  badge?: {
+    text: string;
+    showArrow?: boolean;
+    arrowDirection?: 'up' | 'down';
+    color?: string;
+  };
 }
 
 export interface Review {

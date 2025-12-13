@@ -1,19 +1,6 @@
 import { useState, useMemo } from 'react';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { TableCell, TableHead, TableRow } from '@/components/ui/table';
+import { SimpleSelect } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -142,37 +129,19 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
       {/* Toolbar */}
       <div className="p-4 border-b border-gray-100 flex items-center justify-between gap-4 bg-white">
         <div className="flex items-center gap-3 flex-1">
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[120px] bg-gray-50 border-0">
-              <SelectValue placeholder="전체 상태" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem
-                value="all"
-                className="focus:bg-[#FFFDD2] focus:text-gray-900 cursor-pointer"
-              >
-                전체 상태
-              </SelectItem>
-              <SelectItem
-                value="active"
-                className="focus:bg-[#FFFDD2] focus:text-gray-900 cursor-pointer"
-              >
-                재직중
-              </SelectItem>
-              <SelectItem
-                value="resigning"
-                className="focus:bg-[#FFFDD2] focus:text-gray-900 cursor-pointer"
-              >
-                퇴사 예정
-              </SelectItem>
-              <SelectItem
-                value="inactive"
-                className="focus:bg-[#FFFDD2] focus:text-gray-900 cursor-pointer"
-              >
-                퇴사
-              </SelectItem>
-            </SelectContent>
-          </Select>
+          <SimpleSelect
+            value={statusFilter}
+            onValueChange={setStatusFilter}
+            items={[
+              { value: 'all', label: '전체 상태' },
+              { value: 'active', label: '재직중' },
+              { value: 'resigning', label: '퇴사 예정' },
+              { value: 'inactive', label: '퇴사' },
+            ]}
+            placeholder="전체 상태"
+            triggerClassName="w-[120px] bg-gray-50 border-0"
+            itemClassName="focus:bg-[#FFFDD2] focus:text-gray-900 cursor-pointer"
+          />
 
           <div className="relative w-64">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
@@ -187,43 +156,21 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
 
         <div className="flex items-center gap-3">
           <span className="text-sm text-gray-500 whitespace-nowrap">페이지당 항목 수:</span>
-          <Select
+          <SimpleSelect
             value={String(pageSize)}
             onValueChange={(v) => {
               setPageSize(Number(v));
               setCurrentPage(1);
             }}
-          >
-            <SelectTrigger className="w-[70px] bg-gray-50 border-0">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem
-                value="10"
-                className="focus:bg-[#FFFDD2] focus:text-gray-900 cursor-pointer"
-              >
-                10
-              </SelectItem>
-              <SelectItem
-                value="20"
-                className="focus:bg-[#FFFDD2] focus:text-gray-900 cursor-pointer"
-              >
-                20
-              </SelectItem>
-              <SelectItem
-                value="50"
-                className="focus:bg-[#FFFDD2] focus:text-gray-900 cursor-pointer"
-              >
-                50
-              </SelectItem>
-              <SelectItem
-                value="100"
-                className="focus:bg-[#FFFDD2] focus:text-gray-900 cursor-pointer"
-              >
-                100
-              </SelectItem>
-            </SelectContent>
-          </Select>
+            items={[
+              { value: '10', label: '10' },
+              { value: '20', label: '20' },
+              { value: '50', label: '50' },
+              { value: '100', label: '100' },
+            ]}
+            triggerClassName="w-[70px] bg-gray-50 border-0"
+            itemClassName="focus:bg-[#FFFDD2] focus:text-gray-900 cursor-pointer"
+          />
 
           <Button
             className={`border-0 transition-colors duration-200 ${
@@ -241,9 +188,10 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
 
       {/* Table Area */}
       <div className="flex-1 overflow-auto relative">
-        <Table>
-          <TableHeader className="bg-gray-50 sticky top-0 z-10 shadow-sm">
-            <TableRow>
+        <div className="relative w-full">
+          <table className="w-full caption-bottom text-sm">
+            <thead className="bg-gray-50 sticky top-0 z-10 shadow-sm">
+              <TableRow>
               <TableHead className="w-[50px] text-center">
                 <Checkbox
                   checked={selectedRows.size === paginatedData.length && paginatedData.length > 0}
@@ -264,91 +212,83 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
                 </TableHead>
               ))}
             </TableRow>
-          </TableHeader>
-          <TableBody>
-            {paginatedData.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={columns.length + 1} className="h-24 text-center text-gray-500">
-                  데이터가 없습니다.
-                </TableCell>
-              </TableRow>
-            ) : (
-              paginatedData.map((row) => (
-                <TableRow key={row.id} className="hover:bg-gray-50/50">
-                  <TableCell className="text-center">
-                    <Checkbox
-                      checked={selectedRows.has(row.id)}
-                      onCheckedChange={() => toggleSelectRow(row.id)}
-                    />
-                  </TableCell>
-                  <TableCell className="font-mono text-gray-600">{row.employee_code}</TableCell>
-                  <TableCell className="font-medium text-gray-900">{row.name}</TableCell>
-                  <TableCell className="text-gray-600">{row.phone}</TableCell>
-                  <TableCell className="text-gray-600">{row.email}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Progress
-                        value={(row.jam_balance / (row.jam_capacity || 100000)) * 100}
-                        className="h-2 w-24 bg-gray-100"
-                        indicatorClassName="bg-[#FEE666]"
-                      />
-                      <span className="text-xs font-bold text-gray-700">
-                        {Math.round((row.jam_balance / (row.jam_capacity || 100000)) * 100)}%
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-gray-600">
-                    {row.join_date ? format(new Date(row.join_date), 'yyyy-MM-dd') : '-'}
-                  </TableCell>
-                  <TableCell className="text-gray-600">{row.group_name || '그룹 없음'}</TableCell>
-                  <TableCell>
-                    {row.employment_status === 'active' && (
-                      <Badge
-                        variant="secondary"
-                        className="bg-green-100 text-green-700 hover:bg-green-100 border-0 font-normal"
-                      >
-                        재직중
-                      </Badge>
-                    )}
-                    {row.employment_status === 'resigning' && (
-                      <div className="flex flex-col items-start gap-0.5">
-                        <Badge
-                          variant="secondary"
-                          className="bg-gray-100 text-gray-500 hover:bg-gray-100 border-0 font-normal"
-                        >
-                          퇴사 예정
-                        </Badge>
-                        {row.resignation_date && (
-                          <span className="text-[10px] text-gray-400">
-                            {format(new Date(row.resignation_date), 'yyyy-MM-dd')}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                    {row.employment_status === 'inactive' && (
-                      <Badge
-                        variant="outline"
-                        className="text-gray-400 border-gray-200 font-normal"
-                      >
-                        퇴사
-                      </Badge>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 text-xs text-gray-500"
-                      onClick={() => setEditingEmployee(row)}
-                    >
-                      변경
-                    </Button>
+            </thead>
+            <tbody className="[&_tr:last-child]:border-0">
+              {paginatedData.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={columns.length + 1} className="h-24 text-center text-gray-500">
+                    데이터가 없습니다.
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+              ) : (
+                paginatedData.map((row) => (
+                  <TableRow key={row.id} className="hover:bg-gray-50/50">
+                    <TableCell className="text-center">
+                      <Checkbox
+                        checked={selectedRows.has(row.id)}
+                        onCheckedChange={() => toggleSelectRow(row.id)}
+                      />
+                    </TableCell>
+                    <TableCell className="font-mono text-gray-600">{row.employee_code}</TableCell>
+                    <TableCell className="font-medium text-gray-900">{row.name}</TableCell>
+                    <TableCell className="text-gray-600">{row.phone}</TableCell>
+                    <TableCell className="text-gray-600">{row.email}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Progress
+                          value={(row.jam_balance / (row.jam_capacity || 100000)) * 100}
+                          className="h-2 w-24 bg-gray-100"
+                          indicatorClassName="bg-[#FEE666]"
+                        />
+                        <span className="text-xs font-bold text-gray-700">
+                          {Math.round((row.jam_balance / (row.jam_capacity || 100000)) * 100)}%
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-gray-600">
+                      {row.join_date ? format(new Date(row.join_date), 'yyyy-MM-dd') : '-'}
+                    </TableCell>
+                    <TableCell className="text-gray-600">{row.group_name || '그룹 없음'}</TableCell>
+                    <TableCell>
+                      {row.employment_status === 'active' && (
+                        <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-0 font-normal">
+                          재직중
+                        </Badge>
+                      )}
+                      {row.employment_status === 'resigning' && (
+                        <div className="flex flex-col items-start gap-0.5">
+                          <Badge className="bg-gray-100 text-gray-500 hover:bg-gray-100 border-0 font-normal">
+                            퇴사 예정
+                          </Badge>
+                          {row.resignation_date && (
+                            <span className="text-[10px] text-gray-400">
+                              {format(new Date(row.resignation_date), 'yyyy-MM-dd')}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      {row.employment_status === 'inactive' && (
+                        <Badge className="text-gray-400 border-gray-200 font-normal">
+                          퇴사
+                        </Badge>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 text-xs text-gray-500"
+                        onClick={() => setEditingEmployee(row)}
+                      >
+                        변경
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <JamAllocationModal

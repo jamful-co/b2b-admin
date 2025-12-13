@@ -19,7 +19,7 @@ export default function UsageChart() {
   const currentMonth = '11월';
 
   return (
-    <Card className="shadow-sm border-gray-100 h-full">
+    <Card className="h-full">
       <CardHeader className="flex flex-row items-center justify-between pb-8">
         <div className="space-y-1">
           <CardTitle className="text-base font-bold text-gray-900">월 평균 사용 잼</CardTitle>

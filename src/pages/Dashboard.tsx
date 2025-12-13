@@ -34,12 +34,66 @@ export default function Dashboard() {
     return [...filteredStats].sort((a, b) => (order[a.type] || 99) - (order[b.type] || 99));
   }, [filteredStats, dashboardType]);
 
+  // Convert Stat to StatCard props
+  const convertStatToCardProps = (stat: StatType) => {
+    const isChargedJam = stat.type === 'total_charged_jam';
+
+    // Create value with Jam icon if needed
+    const value = isChargedJam ? (
+      <div className="flex items-center gap-2">
+        <div className="flex items-center justify-center w-7 h-7 rounded-full bg-black text-yellow-400 font-bold text-sm shrink-0">
+          J
+        </div>
+        <span>{stat.value}</span>
+      </div>
+    ) : stat.value;
+
+    // Convert badge if exists
+    let badge = undefined;
+    if (stat.badge) {
+      badge = {
+        type: stat.badge.color === '#16A34A' ? 'success' as const : 'warn' as const,
+        text: stat.badge.text,
+        showArrow: stat.badge.showArrow
+      };
+    } else if (stat.change !== undefined && stat.change !== 0) {
+      // Legacy: convert change to badge
+      badge = {
+        type: stat.change > 0 ? 'success' as const : 'warn' as const,
+        text: `${stat.change > 0 ? '+' : ''}${stat.change}명`,
+        showArrow: true
+      };
+    } else if (stat.percentage !== undefined) {
+      // Legacy: convert percentage to badge
+      badge = {
+        type: stat.percentage >= 50 ? 'success' as const : 'warn' as const,
+        text: `${stat.percentage}%`,
+        showArrow: false
+      };
+    }
+
+    return {
+      label: stat.label,
+      value,
+      badge
+    };
+  };
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex items-center gap-3">
-        <h1 className="text-2xl font-bold text-gray-900">12월 잼플 복지 운영 현황</h1>
-        <Badge className="bg-[#FFF9C4] text-gray-900 hover:bg-[#FFF9C4] border-0 text-sm font-medium px-3 py-1">
+        <h1 style={{ fontSize: '22px', fontWeight: 600 }}>12월 잼플 복지 운영 현황</h1>
+        <Badge
+          className="text-gray-900 hover:bg-[var(--lemon-lemon-300,#FFFA97)] border-0"
+          style={{
+            fontSize: '14px',
+            fontWeight: 600,
+            background: 'var(--lemon-lemon-300, #FFFA97)',
+            padding: '4px 12px',
+            borderRadius: '9999px'
+          }}
+        >
           {dashboardType === 'recharge' ? '충전형 멤버십 이용중' : '구독형 멤버십 이용중'}
         </Badge>
       </div>
@@ -49,11 +103,14 @@ export default function Dashboard() {
         <div className="lg:col-span-2 space-y-6 overflow-y-auto pr-2 custom-scrollbar">
           {/* Stats Row */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {sortedStats.map((stat) => (
-              <div key={stat.id} className="h-32">
-                <StatCard stat={stat} />
-              </div>
-            ))}
+            {sortedStats.map((stat) => {
+              const cardProps = convertStatToCardProps(stat);
+              return (
+                <div key={stat.id} className="h-32">
+                  <StatCard {...cardProps} />
+                </div>
+              );
+            })}
           </div>
 
           {/* Recharge Only: Available Jam Card */}

@@ -11,7 +11,7 @@ export default function JamGroupList() {
   });
 
   return (
-    <Card className="shadow-sm border-gray-100">
+    <Card>
       <CardHeader className="pb-4">
         <CardTitle className="text-sm font-medium text-gray-500">1인당 지급 잼</CardTitle>
       </CardHeader>

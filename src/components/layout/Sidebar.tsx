@@ -34,15 +34,22 @@ export default function Sidebar() {
   };
 
   return (
-    <div className="w-64 bg-white border-r border-gray-100 h-full flex flex-col">
-      <div className="p-6">
+    <div
+      className="h-full flex flex-col py-8 px-4"
+      style={{
+        width: '232px',
+        borderRight: '1px solid var(--border-light, #F1F1F0)',
+        background: 'var(--warm-neutral-25, #FBFBFB)'
+      }}
+    >
+      <div className="mb-4">
         <div className="flex items-center gap-2 text-indigo-600 font-bold text-xl">
           <BarChart3 className="w-6 h-6" />
           <span className="text-gray-900">ByteDance</span>
         </div>
       </div>
 
-      <nav className="flex-1 px-4 py-2 space-y-1">
+      <nav className="flex-1 flex flex-col gap-2">
         {menuItems.map((item) => {
           const isActive =
             currentPath === item.path || (item.path === '/dashboard' && currentPath === '/');
@@ -57,11 +64,28 @@ export default function Sidebar() {
               key={item.path}
               to={to}
               className={cn(
-                'flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors',
+                'flex items-center gap-3 text-sm font-medium transition-colors',
                 isActive
-                  ? 'bg-[#FFF9C4] text-gray-900'
-                  : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                  ? 'text-gray-900'
+                  : 'text-gray-500 hover:text-gray-900'
               )}
+              style={{
+                padding: '14px 16px',
+                borderRadius: '4px',
+                backgroundColor: isActive
+                  ? 'var(--lemon-lemon-300, #FFFA97)'
+                  : 'transparent'
+              }}
+              onMouseEnter={(e) => {
+                if (!isActive) {
+                  e.currentTarget.style.backgroundColor = 'var(--lemon-lemon-50, #FFFDD2)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isActive) {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }
+              }}
             >
               <item.icon className={cn('w-5 h-5', isActive ? 'text-gray-900' : 'text-gray-400')} />
               {item.label}
