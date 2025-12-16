@@ -17,6 +17,7 @@ export default function GroupAddModal({ isOpen, onClose, onSubmit, isSubmitting 
     name: '',
     amount: '',
     recharge_date: '1',
+    status: 'active',
   });
 
   // Reset form when modal opens
@@ -26,12 +27,13 @@ export default function GroupAddModal({ isOpen, onClose, onSubmit, isSubmitting 
         name: '',
         amount: '',
         recharge_date: '1',
+        status: 'active',
       });
     }
   }, [isOpen]);
 
   const isValid =
-    formData.name.trim() !== '' && formData.amount !== '' && formData.recharge_date !== '';
+    formData.name.trim() !== '' && formData.amount !== '' && formData.recharge_date !== '' && formData.status !== '';
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -112,6 +114,22 @@ export default function GroupAddModal({ isOpen, onClose, onSubmit, isSubmitting 
                 { value: 'end', label: '매월 말일' },
               ]}
               placeholder="충전일 선택"
+              triggerClassName="h-12 border-gray-200 focus:ring-gray-900"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="status" className="text-sm font-bold text-gray-900">
+              상태
+            </Label>
+            <SimpleSelect
+              value={formData.status}
+              onValueChange={(value) => setFormData({ ...formData, status: value })}
+              items={[
+                { value: 'active', label: '활성화' },
+                { value: 'inactive', label: '비활성화' },
+              ]}
+              placeholder="상태 선택"
               triggerClassName="h-12 border-gray-200 focus:ring-gray-900"
             />
           </div>

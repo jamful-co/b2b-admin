@@ -29,6 +29,8 @@ export interface JamGroup {
   id: string;
   name: string;
   amount: number;
+  recharge_date: string; // '1', '15', 'end', or specific day number
+  status: 'active' | 'inactive';
 }
 
 export interface Employee {
@@ -219,8 +221,17 @@ const mockReviews: Review[] = [
 const mockJamGroups: JamGroup[] = [
   {
     id: '1',
-    name: '입직원별로 상이',
-    amount: 150000,
+    name: '기본 그룹',
+    amount: 1000,
+    recharge_date: '1',
+    status: 'active',
+  },
+  {
+    id: '2',
+    name: '기본 그룹 2',
+    amount: 1000,
+    recharge_date: '1',
+    status: 'inactive',
   },
 ];
 
