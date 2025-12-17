@@ -1,36 +1,95 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-
-const data = [
-  { name: '11월', value: 1000 },
-  { name: '12월', value: 0 },
-  { name: '1월', value: 0 },
-  { name: '2월', value: 0 },
-  { name: '3월', value: 0 },
-  { name: '4월', value: 0 },
-  { name: '5월', value: 0 },
-  { name: '6월', value: 0 },
-  { name: '7월', value: 0 },
-  { name: '8월', value: 0 },
-];
+import { useMonthlyJamUsage } from '@/hooks/useMonthlyJamUsage';
+import { getCompanyId } from '@/lib/company';
 
 export default function UsageChart() {
-  const currentMonth = '11월';
+  const companyId = getCompanyId();
+
+  // GraphQL로 월간 잼 사용량 조회
+  const { data: usageData, isLoading } = useMonthlyJamUsage(companyId, 10);
+
+  // 차트 데이터 변환
+  const chartData = React.useMemo(() => {
+    if (!usageData?.monthlyUsage) {
+      // 기본 데이터 (로딩 중이거나 데이터가 없을 때)
+      return [
+        { name: '11월', value: 1000 },
+        { name: '12월', value: 0 },
+        { name: '1월', value: 0 },
+        { name: '2월', value: 0 },
+        { name: '3월', value: 0 },
+        { name: '4월', value: 0 },
+        { name: '5월', value: 0 },
+        { name: '6월', value: 0 },
+        { name: '7월', value: 0 },
+        { name: '8월', value: 0 },
+      ];
+    }
+
+    // GraphQL 데이터를 차트 형식으로 변환
+    return usageData.monthlyUsage.map((month) => {
+      // YYYY-MM 형식을 M월 형식으로 변환
+      const [year, monthNum] = month.yearMonth.split('-');
+      const monthName = `${parseInt(monthNum)}월`;
+
+      return {
+        name: monthName,
+        value: Math.round(month.averageUsage),
+        yearMonth: month.yearMonth,
+      };
+    });
+  }, [usageData]);
+
+  // 현재 월 계산
+  const currentMonth = React.useMemo(() => {
+    const now = new Date();
+    return `${now.getMonth() + 1}월`;
+  }, []);
+
+  // 평균 사용량 표시
+  const averageUsage = usageData?.overallAverageUsage
+    ? Math.round(usageData.overallAverageUsage).toLocaleString()
+    : '1,000';
+
+  // 마지막 업데이트 시간
+  const lastUpdated = React.useMemo(() => {
+    const now = new Date();
+    return `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  }, []);
+
+  if (isLoading) {
+    return (
+      <Card className="h-full">
+        <CardHeader className="flex flex-row items-center justify-between pb-8">
+          <div className="space-y-1">
+            <CardTitle className="text-base font-bold text-gray-900">월 평균 사용 잼</CardTitle>
+            <p className="text-2xl font-bold text-gray-900">로딩 중...</p>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[250px] w-full flex items-center justify-center">
+            <p className="text-gray-400">데이터를 불러오는 중...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="h-full">
       <CardHeader className="flex flex-row items-center justify-between pb-8">
         <div className="space-y-1">
           <CardTitle className="text-base font-bold text-gray-900">월 평균 사용 잼</CardTitle>
-          <p className="text-2xl font-bold text-gray-900">1,000잼</p>
+          <p className="text-2xl font-bold text-gray-900">{averageUsage}잼</p>
         </div>
-        <p className="text-xs text-gray-400">2025.11.13 4:35PM</p>
+        <p className="text-xs text-gray-400">{lastUpdated}</p>
       </CardHeader>
       <CardContent>
         <div className="h-[250px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+            <BarChart data={chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
               <XAxis
                 dataKey="name"
                 axisLine={false}
@@ -47,7 +106,7 @@ export default function UsageChart() {
                 }}
               />
               <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={32}>
-                {data.map((entry, index) => (
+                {chartData.map((entry, index) => (
                   <Cell
                     key={`cell-${index}`}
                     fill={entry.name === currentMonth ? '#FDE047' : '#F3F4F6'}

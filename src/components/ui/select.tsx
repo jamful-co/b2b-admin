@@ -99,7 +99,7 @@ interface SelectItemProps extends React.ComponentPropsWithoutRef<typeof SelectPr
 const SelectItem = ({ className, children, ...props }: SelectItemProps) => (
   <SelectPrimitive.Item
     className={cn(
-      'relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-2 pr-8 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+      'relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-2 pr-8 text-sm outline-none focus:bg-accent focus:text-accent-foreground hover:bg-[#FFFDD2] data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
       className
     )}
     {...props}
@@ -137,6 +137,9 @@ interface SimpleSelectProps {
   placeholder?: string;
   triggerClassName?: string;
   itemClassName?: string;
+  // 커스텀 렌더링 함수들
+  renderItem?: (item: SelectOption, isSelected?: boolean) => React.ReactNode;
+  renderValue?: (selectedItem: SelectOption | undefined) => React.ReactNode;
 }
 
 const SimpleSelect = ({
@@ -146,20 +149,32 @@ const SimpleSelect = ({
   placeholder = 'Select...',
   triggerClassName,
   itemClassName,
-}: SimpleSelectProps) => (
-  <Select value={value} onValueChange={onValueChange}>
-    <SelectTrigger className={triggerClassName}>
-      <SelectValue placeholder={placeholder} />
-    </SelectTrigger>
-    <SelectContent>
-      {items.map((item) => (
-        <SelectItem key={item.value} value={item.value} className={itemClassName}>
-          {item.label}
-        </SelectItem>
-      ))}
-    </SelectContent>
-  </Select>
-);
+  renderItem,
+  renderValue,
+}: SimpleSelectProps) => {
+  const selectedItem = items.find((item) => item.value === value);
+
+  return (
+    <Select value={value} onValueChange={onValueChange}>
+      <SelectTrigger className={triggerClassName}>
+        {renderValue && selectedItem ? (
+          <div className="flex items-center justify-between w-full">
+            <span>{renderValue(selectedItem)}</span>
+          </div>
+        ) : (
+          <SelectValue placeholder={placeholder} />
+        )}
+      </SelectTrigger>
+      <SelectContent>
+        {items.map((item) => (
+          <SelectItem key={item.value} value={item.value} className={itemClassName}>
+            {renderItem ? renderItem(item, item.value === value) : item.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+};
 
 export {
   Select,

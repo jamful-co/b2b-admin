@@ -6,12 +6,14 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { ChevronLeft, ChevronRight, ArrowUpDown, Search } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ArrowUpDown, Search, Pencil } from 'lucide-react';
 import { format } from 'date-fns';
 import JamAllocationModal from './JamAllocationModal';
 import EmployeeEditModal from './EmployeeEditModal';
+import EmployeeStatusChangeModal from './EmployeeStatusChangeModal';
+import EmployeeGroupChangeModal from './EmployeeGroupChangeModal';
 import { toast } from 'sonner';
-import { Employee, type Employee as EmployeeType } from '@/api/entities';
+import { Employee, EmployeeStatus, type Employee as EmployeeType } from '@/api/entities';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface EmployeeTableProps {
@@ -30,6 +32,8 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
   const [sorting, setSorting] = useState<SortingState>({ key: 'name', direction: 'asc' });
   const [isJamModalOpen, setIsJamModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<EmployeeType | null>(null);
+  const [statusChangingEmployee, setStatusChangingEmployee] = useState<EmployeeType | null>(null);
+  const [groupChangingEmployee, setGroupChangingEmployee] = useState<EmployeeType | null>(null);
   const [globalFilter, setGlobalFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [pageSize, setPageSize] = useState(20);
@@ -89,8 +93,40 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
     },
   });
 
+  const updateEmployeeStatusMutation = useMutation({
+    mutationFn: (updatedData: EmployeeType) => Employee.update(updatedData.id, updatedData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
+      toast.success('직원 상태가 변경되었습니다.');
+      setStatusChangingEmployee(null);
+    },
+    onError: () => {
+      toast.error('직원 상태 변경에 실패했습니다.');
+    },
+  });
+
+  const updateEmployeeGroupMutation = useMutation({
+    mutationFn: (updatedData: EmployeeType) => Employee.update(updatedData.id, updatedData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
+      toast.success('직원 그룹이 변경되었습니다.');
+      setGroupChangingEmployee(null);
+    },
+    onError: () => {
+      toast.error('직원 그룹 변경에 실패했습니다.');
+    },
+  });
+
   const handleSaveEmployee = (updatedData: EmployeeType) => {
     updateEmployeeMutation.mutate(updatedData);
+  };
+
+  const handleSaveStatusChange = (updatedData: EmployeeType) => {
+    updateEmployeeStatusMutation.mutate(updatedData);
+  };
+
+  const handleSaveGroupChange = (updatedData: EmployeeType) => {
+    updateEmployeeGroupMutation.mutate(updatedData);
   };
 
   const toggleSelectAll = () => {
@@ -119,9 +155,8 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
     { key: 'email', label: '이메일', sortable: true },
     { key: 'jam_balance', label: '잼 잔여량', sortable: true, width: '200px' },
     { key: 'join_date', label: '입사일', sortable: true },
-    { key: 'group_name', label: '그룹', sortable: true },
     { key: 'employment_status', label: '재직 상태', sortable: true },
-    { key: 'actions', label: '상태 및 정보', sortable: false },
+    { key: 'group_name', label: '그룹', sortable: true },
   ];
 
   return (
@@ -248,40 +283,62 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
                     <TableCell className="text-gray-600">
                       {row.join_date ? format(new Date(row.join_date), 'yyyy-MM-dd') : '-'}
                     </TableCell>
-                    <TableCell className="text-gray-600">{row.group_name || '그룹 없음'}</TableCell>
                     <TableCell>
-                      {row.employment_status === 'active' && (
-                        <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-0 font-normal">
-                          재직중
-                        </Badge>
-                      )}
-                      {row.employment_status === 'resigning' && (
-                        <div className="flex flex-col items-start gap-0.5">
-                          <Badge className="bg-gray-100 text-gray-500 hover:bg-gray-100 border-0 font-normal">
-                            퇴사 예정
-                          </Badge>
-                          {row.resignation_date && (
-                            <span className="text-[10px] text-gray-400">
-                              {format(new Date(row.resignation_date), 'yyyy-MM-dd')}
-                            </span>
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex-1">
+                          {(row.employment_status === 'active' || row.employment_status === EmployeeStatus.ACTIVE) && (
+                            <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-0 font-normal">
+                              재직중
+                            </Badge>
+                          )}
+                          {(row.employment_status === 'resigning' || row.employment_status === EmployeeStatus.LEAVING) && (
+                            <div className="flex flex-col items-start gap-0.5">
+                              <Badge className="bg-gray-100 text-gray-500 hover:bg-gray-100 border-0 font-normal">
+                                퇴사 예정
+                              </Badge>
+                              {row.resignation_date && (
+                                <span className="text-[10px] text-gray-400">
+                                  {format(new Date(row.resignation_date), 'yyyy-MM-dd')}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                          {(row.employment_status === 'inactive' || row.employment_status === EmployeeStatus.LEFT) && (
+                            <Badge className="text-gray-400 border-gray-200 font-normal">
+                              퇴사
+                            </Badge>
+                          )}
+                          {row.employment_status === EmployeeStatus.PENDING && (
+                            <Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-100 border-0 font-normal">
+                              승인 대기
+                            </Badge>
+                          )}
+                          {row.employment_status === EmployeeStatus.REJECTED && (
+                            <Badge className="bg-red-100 text-red-700 hover:bg-red-100 border-0 font-normal">
+                              승인 거절
+                            </Badge>
                           )}
                         </div>
-                      )}
-                      {row.employment_status === 'inactive' && (
-                        <Badge className="text-gray-400 border-gray-200 font-normal">
-                          퇴사
-                        </Badge>
-                      )}
+                        <button
+                          onClick={() => setStatusChangingEmployee(row)}
+                          className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
+                          aria-label="상태 변경"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                      </div>
                     </TableCell>
                     <TableCell>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-8 text-xs text-gray-500"
-                        onClick={() => setEditingEmployee(row)}
-                      >
-                        변경
-                      </Button>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-gray-600 flex-1">{row.group_name || '그룹 없음'}</span>
+                        <button
+                          onClick={() => setGroupChangingEmployee(row)}
+                          className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
+                          aria-label="그룹 변경"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
@@ -303,6 +360,22 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
         onClose={() => setEditingEmployee(null)}
         onSave={handleSaveEmployee}
         employee={editingEmployee}
+      />
+
+      <EmployeeStatusChangeModal
+        isOpen={!!statusChangingEmployee}
+        onClose={() => setStatusChangingEmployee(null)}
+        onSave={handleSaveStatusChange}
+        employee={statusChangingEmployee}
+        isSubmitting={updateEmployeeStatusMutation.isPending}
+      />
+
+      <EmployeeGroupChangeModal
+        isOpen={!!groupChangingEmployee}
+        onClose={() => setGroupChangingEmployee(null)}
+        onSave={handleSaveGroupChange}
+        employee={groupChangingEmployee}
+        isSubmitting={updateEmployeeGroupMutation.isPending}
       />
 
       {/* Footer Pagination */}

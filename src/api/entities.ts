@@ -33,6 +33,20 @@ export interface JamGroup {
   status: 'active' | 'inactive';
 }
 
+/** 임직원 상태 enum */
+export enum EmployeeStatus {
+  /** 승인 대기: 유저가 가입했지만 아직 어드민 승인 대기 중 */
+  PENDING = 'PENDING',
+  /** 승인 거절: 어드민이 가입을 거절함 */
+  REJECTED = 'REJECTED',
+  /** 재직중: 현재 재직 중인 임직원 */
+  ACTIVE = 'ACTIVE',
+  /** 퇴사 예정: 퇴사일이 설정되어 있지만 아직 재직 중 */
+  LEAVING = 'LEAVING',
+  /** 퇴사: 퇴사 처리 완료 */
+  LEFT = 'LEFT',
+}
+
 export interface Employee {
   id: string;
   name: string;
@@ -40,7 +54,7 @@ export interface Employee {
   phone: string;
   employee_code: string;
   group_name: string;
-  employment_status: 'active' | 'resigning' | 'inactive';
+  employment_status: EmployeeStatus | 'active' | 'resigning' | 'inactive'; // 하위 호환성을 위해 유지
   join_date: string;
   resignation_date?: string;
   jam_balance: number;

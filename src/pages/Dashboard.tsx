@@ -8,10 +8,16 @@ import ReviewList from '../components/dashboard/ReviewList';
 import AvailableJamCard from '../components/dashboard/AvailableJamCard';
 import JamGroupList from '../components/dashboard/JamGroupList';
 import { useSearchParams } from 'react-router-dom';
+import { useMemberStats } from '@/hooks/useMemberStats';
+import { getCompanyId } from '@/lib/company';
 
 export default function Dashboard() {
   const [searchParams] = useSearchParams();
   const dashboardType = searchParams.get('dashboard_type') || 'subscription';
+  const companyId = getCompanyId();
+
+  // GraphQL로 회원 통계 조회
+  const { data: memberStats } = useMemberStats(companyId);
 
   const { data: stats = [] } = useQuery<StatType[]>({
     queryKey: ['stats'],
@@ -26,13 +32,48 @@ export default function Dashboard() {
     });
   }, [stats, dashboardType]);
 
+  // GraphQL 데이터로 통계 카드 생성 (구독형 대시보드용)
+  const graphqlStats = React.useMemo(() => {
+    if (dashboardType !== 'subscription' || !memberStats) {
+      return [];
+    }
+
+    return [
+      {
+        id: 'gql-total-members',
+        type: 'total_members',
+        label: '총 가입 회원',
+        value: `${memberStats.totalApprovedMembers}명`,
+        dashboard_type: 'subscription',
+      },
+      {
+        id: 'gql-subscribers',
+        type: 'subscribers',
+        label: '구독중인 임직원',
+        value: `${memberStats.subscribingMembers}명`,
+        percentage: memberStats.subscriptionRate,
+        dashboard_type: 'subscription',
+      },
+    ];
+  }, [memberStats, dashboardType]);
+
+  // GraphQL 데이터와 기존 데이터 병합
+  const mergedStats = React.useMemo(() => {
+    if (dashboardType === 'subscription' && graphqlStats.length > 0) {
+      // GraphQL 데이터가 있으면 GraphQL 데이터 사용, 나머지는 기존 데이터에서 가져오기
+      const paymentDateStat = filteredStats.find((s) => s.type === 'payment_date');
+      return paymentDateStat ? [...graphqlStats, paymentDateStat] : graphqlStats;
+    }
+    return filteredStats;
+  }, [graphqlStats, filteredStats, dashboardType]);
+
   const sortedStats = React.useMemo(() => {
     const order: Record<string, number> =
       dashboardType === 'recharge'
         ? { total_participants: 1, total_charged_jam: 2, payment_date: 3 }
         : { total_members: 1, subscribers: 2, payment_date: 3 };
-    return [...filteredStats].sort((a, b) => (order[a.type] || 99) - (order[b.type] || 99));
-  }, [filteredStats, dashboardType]);
+    return [...mergedStats].sort((a, b) => (order[a.type] || 99) - (order[b.type] || 99));
+  }, [mergedStats, dashboardType]);
 
   // Convert Stat to StatCard props
   const convertStatToCardProps = (stat: StatType) => {
