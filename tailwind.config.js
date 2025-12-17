@@ -40,7 +40,11 @@ module.exports = {
   				DEFAULT: 'hsl(var(--destructive))',
   				foreground: 'hsl(var(--destructive-foreground))'
   			},
-  			border: 'hsl(var(--border))',
+  			border: {
+  				DEFAULT: 'hsl(var(--border))',
+  				light: 'var(--border-light)',
+  				default: 'var(--border-default)'
+  			},
   			input: 'hsl(var(--input))',
   			ring: 'hsl(var(--ring))',
   			chart: {
@@ -59,6 +63,11 @@ module.exports = {
   				'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
   				border: 'hsl(var(--sidebar-border))',
   				ring: 'hsl(var(--sidebar-ring))'
+  			},
+  			text: {
+  				primary: 'var(--text-primary)',
+  				secondary: 'var(--text-secondary)',
+  				tertiary: 'var(--text-tertiary)'
   			}
   		},
   		keyframes: {

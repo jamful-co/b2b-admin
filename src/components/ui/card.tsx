@@ -6,7 +6,7 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 
 const Card = ({ className, ...props }: CardProps) => (
   <div
-    className={cn('text-card-foreground bg-white rounded-lg border border-[color:var(--border-default)]', className)}
+    className={cn('text-card-foreground bg-white rounded-lg border border-border-default', className)}
     {...props}
   />
 );
@@ -17,7 +17,7 @@ const CardHeader = ({ className, ...props }: CardProps) => (
 
 const CardTitle = ({ className, ...props }: CardProps) => (
   <div
-    className={cn('leading-none tracking-tight text-sm font-semibold text-[color:var(--text-secondary)]', className)}
+    className={cn('leading-none tracking-tight text-sm font-semibold text-text-secondary]', className)}
     {...props}
   />
 );

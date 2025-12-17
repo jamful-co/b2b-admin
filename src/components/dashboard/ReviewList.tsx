@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Star } from 'lucide-react';
 import { format } from 'date-fns';
 import { Review } from '@/api/entities';
@@ -22,7 +22,7 @@ export default function ReviewList() {
   // 기존 mock 데이터 (fallback용)
   const { data: mockReviews } = useQuery({
     queryKey: ['reviews'],
-    queryFn: () => Review.list('-date', 50),
+    queryFn: () => Review.list('-date'),
     initialData: [],
   });
 
@@ -62,20 +62,12 @@ export default function ReviewList() {
   }, [reviews]);
 
   return (
-    <Card className="h-full flex flex-col overflow-hidden bg-white" style={{ width: '290px' }}>
-      <CardHeader className="flex-shrink-0 z-20 bg-white" style={{ padding: '24px', paddingBottom: '8px' }}>
-        <CardTitle
-          style={{
-            fontSize: '18px',
-            fontWeight: 600,
-            marginBottom: '16px'
-          }}
-        >
-          최신 임직원 리뷰
-        </CardTitle>
-      </CardHeader>
+    <Card className="h-full w-full overflow-hidden bg-white rounded-[8px] border-[#E3E7EC] pl-6 pt-6 flex flex-col gap-4">
+      <div className="text-[18px] font-semibold leading-[1.4] text-[color:var(--text-primary,#141414)]">
+        최신 임직원 리뷰
+      </div>
 
-      <div className="relative flex-1 min-h-0">
+      <div className="relative flex-1 min-h-0 w-full">
         {/* Top Gradient */}
         <div
           className={`absolute top-0 left-0 right-0 h-12 bg-gradient-to-b from-white to-transparent pointer-events-none z-10 transition-opacity duration-300 ${
@@ -84,17 +76,17 @@ export default function ReviewList() {
         />
 
         {/* Scrollable Content */}
-        <div ref={scrollRef} className="h-full overflow-y-auto custom-scrollbar" style={{ padding: '0 24px 24px 24px' }}>
-          <div className="pt-2 pb-10">
+        <div ref={scrollRef} className="h-full overflow-y-auto custom-scrollbar">
+          <div className="pb-10 pr-6">
             {reviews.map((review, index) => (
               <div
                 key={review.id}
-                className="pb-6 last:border-0 last:pb-0"
+                className="flex flex-col justify-center gap-1 min-h-[72px] py-3 border-b border-[#E2E8F0] last:border-b-0"
                 style={{
-                  borderBottom: index < reviews.length - 1 ? '1px solid var(--gray-20, #E2E8F0)' : 'none'
+                  borderBottom: index < reviews.length - 1 ? '1px solid var(--gray-20, #E2E8F0)' : 'none',
                 }}
               >
-                <div className="flex items-center gap-1 mb-2">
+                <div className="flex items-center gap-0.5">
                   {Array(review.rating)
                     .fill(0)
                     .map((_, i) => (
@@ -104,19 +96,19 @@ export default function ReviewList() {
                       />
                     ))}
                 </div>
-                <p className="text-sm text-gray-800 font-medium mb-1 line-clamp-2">
+                <p className="text-sm font-normal leading-[1.4] text-[color:var(--text-primary,#141414)] whitespace-pre-wrap">
                   {review.content}
                 </p>
                 <div
-                  className="flex items-center gap-1"
+                  className="flex items-center gap-1 text-xs leading-[1.4] text-[color:var(--text-tertiary,#6C7885)]"
                   style={{
                     fontSize: '12px',
                     fontWeight: 400,
-                    color: 'var(--text-tertiary, #6C7885)'
+                    color: 'var(--text-tertiary, #6C7885)',
                   }}
                 >
                   <span>{review.author_name}</span>
-                  <span>·</span>
+                  <span>・</span>
                   <span>{format(new Date(review.date), 'yyyy-MM-dd HH:mm')}</span>
                 </div>
               </div>

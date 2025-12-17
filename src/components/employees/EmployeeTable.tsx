@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { TableCell, TableHead, TableRow } from '@/components/ui/table';
+import { useState, useMemo, type ChangeEvent } from 'react';
+import { TableCell, TableHead, TableRow, ScrollableTableContainer } from '@/components/ui/table';
 import { SimpleSelect } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -149,20 +149,21 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
 
   // Helper for columns
   const columns = [
-    { key: 'employee_code', label: '사번', sortable: true },
-    { key: 'name', label: '이름', sortable: true },
-    { key: 'phone', label: '전화번호', sortable: false },
-    { key: 'email', label: '이메일', sortable: true },
-    { key: 'jam_balance', label: '잼 잔여량', sortable: true, width: '200px' },
-    { key: 'join_date', label: '입사일', sortable: true },
-    { key: 'employment_status', label: '재직 상태', sortable: true },
-    { key: 'group_name', label: '그룹', sortable: true },
+    // 피그마(Table node 16436:14421) 기준 컬럼 폭(px) 적용
+    { key: 'employee_code', label: '사번', sortable: true, width: 77 },
+    { key: 'name', label: '이름', sortable: true, width: 106 },
+    { key: 'phone', label: '전화번호', sortable: false, width: 156 },
+    { key: 'email', label: '이메일', sortable: true, width: 169 },
+    { key: 'jam_balance', label: '잼 잔여량', sortable: true, width: 236 },
+    { key: 'join_date', label: '입사일', sortable: true, width: 122 },
+    { key: 'employment_status', label: '재직 상태', sortable: true, width: 152 },
+    { key: 'group_name', label: '그룹', sortable: true, width: 150 },
   ];
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-lg border border-gray-100 shadow-sm overflow-hidden">
+    <div className="flex flex-col h-full bg-white ">
       {/* Toolbar */}
-      <div className="p-4 border-b border-gray-100 flex items-center justify-between gap-4 bg-white">
+      <div className="py-4 flex items-center justify-between gap-4 bg-white">
         <div className="flex items-center gap-3 flex-1">
           <SimpleSelect
             value={statusFilter}
@@ -174,7 +175,7 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
               { value: 'inactive', label: '퇴사' },
             ]}
             placeholder="전체 상태"
-            triggerClassName="w-[120px] bg-gray-50 border-0"
+            triggerClassName="w-[120px]"
             itemClassName="focus:bg-[#FFFDD2] focus:text-gray-900 cursor-pointer"
           />
 
@@ -183,8 +184,8 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
             <Input
               placeholder="검색"
               value={globalFilter}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setGlobalFilter(e.target.value)}
-              className="pl-9 bg-gray-50 border-0"
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setGlobalFilter(e.target.value)}
+              className="pl-9"
             />
           </div>
         </div>
@@ -203,7 +204,7 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
               { value: '50', label: '50' },
               { value: '100', label: '100' },
             ]}
-            triggerClassName="w-[70px] bg-gray-50 border-0"
+            triggerClassName="w-[70px]"
             itemClassName="focus:bg-[#FFFDD2] focus:text-gray-900 cursor-pointer"
           />
 
@@ -222,12 +223,18 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
       </div>
 
       {/* Table Area */}
-      <div className="flex-1 overflow-auto relative">
-        <div className="relative w-full">
-          <table className="w-full caption-bottom text-sm">
+      <ScrollableTableContainer>
+        <table className="w-full table-fixed min-w-[1348px] caption-bottom text-sm">
+          <colgroup>
+            {/* 피그마 체크박스 컬럼 폭 */}
+            <col style={{ width: 58 }} />
+            {columns.map((col) => (
+              <col key={col.key} style={{ width: col.width }} />
+            ))}
+          </colgroup>
             <thead className="bg-gray-50 sticky top-0 z-10 shadow-sm">
               <TableRow>
-              <TableHead className="w-[50px] text-center">
+              <TableHead className="text-center">
                 <Checkbox
                   checked={selectedRows.size === paginatedData.length && paginatedData.length > 0}
                   onCheckedChange={toggleSelectAll}
@@ -238,7 +245,6 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
                   key={col.key}
                   className={`text-xs font-semibold text-gray-600 ${col.sortable ? 'cursor-pointer select-none hover:bg-gray-100' : ''}`}
                   onClick={() => col.sortable && handleSort(col.key)}
-                  style={{ width: col.width }}
                 >
                   <div className="flex items-center gap-1">
                     {col.label}
@@ -264,10 +270,18 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
                         onCheckedChange={() => toggleSelectRow(row.id)}
                       />
                     </TableCell>
-                    <TableCell className="font-mono text-gray-600">{row.employee_code}</TableCell>
-                    <TableCell className="font-medium text-gray-900">{row.name}</TableCell>
-                    <TableCell className="text-gray-600">{row.phone}</TableCell>
-                    <TableCell className="text-gray-600">{row.email}</TableCell>
+                    <TableCell className="font-mono text-gray-600">
+                      <div className="truncate">{row.employee_code}</div>
+                    </TableCell>
+                    <TableCell className="font-medium text-gray-900">
+                      <div className="truncate">{row.name}</div>
+                    </TableCell>
+                    <TableCell className="text-gray-600">
+                      <div className="truncate">{row.phone}</div>
+                    </TableCell>
+                    <TableCell className="text-gray-600">
+                      <div className="truncate">{row.email}</div>
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Progress
@@ -281,11 +295,13 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
                       </div>
                     </TableCell>
                     <TableCell className="text-gray-600">
-                      {row.join_date ? format(new Date(row.join_date), 'yyyy-MM-dd') : '-'}
+                      <div className="truncate">
+                        {row.join_date ? format(new Date(row.join_date), 'yyyy-MM-dd') : '-'}
+                      </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex-1">
+                      <div className="flex items-center justify-between gap-2 min-w-0">
+                        <div className="flex-1 min-w-0">
                           {(row.employment_status === 'active' || row.employment_status === EmployeeStatus.ACTIVE) && (
                             <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-0 font-normal">
                               재직중
@@ -329,8 +345,10 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-gray-600 flex-1">{row.group_name || '그룹 없음'}</span>
+                      <div className="flex items-center justify-between gap-2 min-w-0">
+                        <span className="text-gray-600 flex-1 min-w-0 truncate">
+                          {row.group_name || '그룹 없음'}
+                        </span>
                         <button
                           onClick={() => setGroupChangingEmployee(row)}
                           className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
@@ -344,9 +362,8 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
                 ))
               )}
             </tbody>
-          </table>
-        </div>
-      </div>
+        </table>
+      </ScrollableTableContainer>
 
       <JamAllocationModal
         isOpen={isJamModalOpen}

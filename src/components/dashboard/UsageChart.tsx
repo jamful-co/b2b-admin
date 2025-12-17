@@ -1,5 +1,5 @@
 import React from 'react';
-import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, ResponsiveContainer, Cell, CartesianGrid, LabelList } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useMonthlyJamUsage } from '@/hooks/useMonthlyJamUsage';
 import { getCompanyId } from '@/lib/company';
@@ -59,18 +59,40 @@ export default function UsageChart() {
     return `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
   }, []);
 
+  // 바 위 라벨 렌더링 (값을 보기 좋게 표시)
+  const renderBarValueLabel = React.useCallback(
+    (props: { x?: number; y?: number; width?: number; value?: number }) => {
+      const { x = 0, y = 0, width = 0, value } = props;
+      if (value == null) return null;
+      if (Number(value) <= 0) return null;
+
+      const label = Number(value).toLocaleString();
+      return (
+        <text
+          x={x + width / 2}
+          y={y - 8}
+          textAnchor="middle"
+          fill="#6B7280"
+          fontSize={12}
+          fontWeight={500}
+        >
+          {label}
+        </text>
+      );
+    },
+    []
+  );
+
   if (isLoading) {
     return (
       <Card className="h-full">
         <CardHeader className="flex flex-row items-center justify-between pb-8">
           <div className="space-y-1">
             <CardTitle className="text-base font-bold text-gray-900">월 평균 사용 잼</CardTitle>
-            <p className="text-2xl font-bold text-gray-900">로딩 중...</p>
           </div>
         </CardHeader>
         <CardContent>
           <div className="h-[250px] w-full flex items-center justify-center">
-            <p className="text-gray-400">데이터를 불러오는 중...</p>
           </div>
         </CardContent>
       </Card>
@@ -82,39 +104,40 @@ export default function UsageChart() {
       <CardHeader className="flex flex-row items-center justify-between pb-8">
         <div className="space-y-1">
           <CardTitle className="text-base font-bold text-gray-900">월 평균 사용 잼</CardTitle>
-          <p className="text-2xl font-bold text-gray-900">{averageUsage}잼</p>
         </div>
         <p className="text-xs text-gray-400">{lastUpdated}</p>
       </CardHeader>
       <CardContent>
         <div className="h-[250px] w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-              <XAxis
-                dataKey="name"
-                axisLine={false}
-                tickLine={false}
-                tick={{ fill: '#9CA3AF', fontSize: 12 }}
-                dy={10}
-              />
-              <Tooltip
-                cursor={{ fill: 'transparent' }}
-                contentStyle={{
-                  borderRadius: '8px',
-                  border: 'none',
-                  boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
-                }}
-              />
-              <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={32}>
-                {chartData.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={entry.name === currentMonth ? '#FDE047' : '#F3F4F6'}
+          {
+            isLoading ? (
+              <div className="h-[250px] w-full flex items-center justify-center">
+                <p className="text-gray-400">데이터를 불러오는 중...</p>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+                  <XAxis
+                    dataKey="name"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#9CA3AF', fontSize: 12 }}
+                    dy={10}
                   />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+                        <CartesianGrid stroke="#E3E7EC" vertical={false} />
+                  <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={32}>
+                    <LabelList dataKey="value" position="top" content={renderBarValueLabel} />
+                    {chartData.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={entry.name === currentMonth ? '#FDE047' : '#F3F4F6'}
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            )
+          }
         </div>
       </CardContent>
     </Card>

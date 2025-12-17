@@ -261,3 +261,108 @@ export interface GetB2bCreditSummaryVariables {
   companyId: number;
 }
 
+// ============================================
+// 임직원 관련 타입 정의
+// ============================================
+
+/**
+ * 잼 정보
+ */
+export interface JamInfo {
+  /**
+   * 총 잼
+   */
+  totalJams: number;
+  /**
+   * 잔여 잼
+   */
+  balanceJams: number;
+}
+
+/**
+ * 멤버십 정보
+ */
+export interface MembershipInfo {
+  /**
+   * 시작일
+   */
+  startDate: string;
+}
+
+/**
+ * 그룹 정보
+ */
+export interface EmployeeGroup {
+  /**
+   * 그룹 ID
+   */
+  groupId: number;
+  /**
+   * 그룹명
+   */
+  groupName: string;
+}
+
+/**
+ * 임직원 정보
+ */
+export interface EmployeeData {
+  /**
+   * 사번
+   */
+  employeeNumber: string;
+  /**
+   * 이름
+   */
+  name: string;
+  /**
+   * 전화번호
+   */
+  phoneNumber: string;
+  /**
+   * 이메일
+   */
+  email: string;
+  /**
+   * 입사일
+   */
+  joinDate: string;
+  /**
+   * 상태
+   */
+  status: string;
+  /**
+   * 잼 정보
+   */
+  jamInfo: JamInfo;
+  /**
+   * 멤버십 정보
+   */
+  membershipInfo: MembershipInfo;
+  /**
+   * 그룹 정보
+   */
+  group: EmployeeGroup;
+}
+
+/**
+ * 임직원 목록 응답
+ */
+export interface EmployeeListResponse {
+  /**
+   * 임직원 목록
+   */
+  employees: EmployeeData[];
+  /**
+   * 총 개수
+   */
+  totalCount: number;
+}
+
+/**
+ * 임직원 목록 조회 변수
+ */
+export interface GetEmployeeListVariables {
+  companyId: number;
+}
+

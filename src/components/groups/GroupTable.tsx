@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { TableCell, TableHead, TableRow } from '@/components/ui/table';
+import { TableCell, TableHead, TableRow, ScrollableTableContainer } from '@/components/ui/table';
 import { SimpleSelect } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -150,9 +150,8 @@ export default function GroupTable({ data, employees, onEdit, onDelete }: GroupT
       </div>
 
       {/* Table Area */}
-      <div className="flex-1 overflow-auto relative">
-        <div className="relative w-full">
-          <table className="w-full caption-bottom text-sm">
+      <ScrollableTableContainer>
+        <table className="w-full min-w-max caption-bottom text-sm">
             <thead className="bg-gray-50 sticky top-0 z-10 shadow-sm">
               <TableRow>
                 {columns.map((col) => (
@@ -226,9 +225,8 @@ export default function GroupTable({ data, employees, onEdit, onDelete }: GroupT
                 ))
               )}
             </tbody>
-          </table>
-        </div>
-      </div>
+        </table>
+      </ScrollableTableContainer>
 
       {/* Footer Pagination */}
       <div className="p-4 border-t border-gray-100 flex items-center justify-center gap-2 bg-white">

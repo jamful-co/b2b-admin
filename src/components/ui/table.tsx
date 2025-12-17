@@ -10,6 +10,27 @@ const Table = ({ className, ...props }: TableProps) => (
   </div>
 );
 
+// Scrollable Table Container with sticky horizontal scrollbar
+interface ScrollableTableContainerProps extends React.HTMLAttributes<HTMLDivElement> {
+  className?: string;
+  bordered?: boolean;
+}
+
+const ScrollableTableContainer = ({ className, bordered = true, children, ...props }: ScrollableTableContainerProps) => (
+  <div
+    className={cn(
+      'flex-1 flex flex-col overflow-hidden',
+      bordered && 'border border-border-default rounded-lg',
+      className
+    )}
+    {...props}
+  >
+    <div className="flex-1 overflow-x-auto overflow-y-auto custom-scrollbar">
+      {children}
+    </div>
+  </div>
+);
+
 interface TableHeaderProps extends React.HTMLAttributes<HTMLTableSectionElement> {
   className?: string;
 }
@@ -87,4 +108,14 @@ const TableCaption = ({ className, ...props }: TableCaptionProps) => (
   <caption className={cn('mt-4 text-sm text-muted-foreground', className)} {...props} />
 );
 
-export { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell, TableCaption };
+export {
+  Table,
+  TableHeader,
+  TableBody,
+  TableFooter,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableCaption,
+  ScrollableTableContainer
+};
