@@ -27,9 +27,22 @@ const DialogOverlay = ({ className, ...props }: DialogOverlayProps) => (
 interface DialogContentProps
   extends React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> {
   className?: string;
+  /**
+   * close 버튼을 통해서만 닫을 수 있도록 설정
+   * true로 설정하면 overlay 클릭이나 ESC 키로 닫을 수 없음
+   * @default true
+   */
+  closeOnlyByButton?: boolean;
 }
 
-const DialogContent = ({ className, children, ...props }: DialogContentProps) => (
+const DialogContent = ({
+  className,
+  children,
+  closeOnlyByButton = true,
+  onPointerDownOutside,
+  onEscapeKeyDown,
+  ...props
+}: DialogContentProps) => (
   <DialogPortal>
     <DialogOverlay />
     <DialogPrimitive.Content
@@ -37,6 +50,8 @@ const DialogContent = ({ className, children, ...props }: DialogContentProps) =>
         'fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg',
         className
       )}
+      onPointerDownOutside={closeOnlyByButton ? (e) => e.preventDefault() : onPointerDownOutside}
+      onEscapeKeyDown={closeOnlyByButton ? (e) => e.preventDefault() : onEscapeKeyDown}
       {...props}
     >
       {children}

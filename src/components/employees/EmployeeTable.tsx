@@ -1,167 +1,347 @@
-import { useState, useMemo, type ChangeEvent } from 'react';
+import { useState, useMemo, useRef, useEffect, type ChangeEvent } from 'react';
+import {
+  useReactTable,
+  getCoreRowModel,
+  getSortedRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  flexRender,
+  createColumnHelper,
+  type SortingState,
+  type ColumnFiltersState,
+  type RowSelectionState,
+  type ColumnSizingState,
+} from '@tanstack/react-table';
 import { TableCell, TableHead, TableRow, ScrollableTableContainer } from '@/components/ui/table';
 import { SimpleSelect } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { ChevronLeft, ChevronRight, ArrowUpDown, Search, Pencil } from 'lucide-react';
+import { ArrowUpDown, ArrowUp, ArrowDown, Search, Pencil } from 'lucide-react';
+import { TablePagination } from '@/components/ui/table-pagination';
 import { format } from 'date-fns';
 import JamAllocationModal from './JamAllocationModal';
 import EmployeeEditModal from './EmployeeEditModal';
 import EmployeeStatusChangeModal from './EmployeeStatusChangeModal';
 import EmployeeGroupChangeModal from './EmployeeGroupChangeModal';
 import { toast } from 'sonner';
-import { Employee, EmployeeStatus, type Employee as EmployeeType } from '@/api/entities';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { EmployeeStatus } from '@/api/entities';
+import { type EmployeeTableData } from '@/graphql/types';
 
 interface EmployeeTableProps {
-  data: EmployeeType[];
+  data: EmployeeTableData[];
 }
 
-interface SortingState {
-  key: string;
-  direction: 'asc' | 'desc';
-}
+const columnHelper = createColumnHelper<EmployeeTableData>();
+
+// 날짜 정렬 함수
+const dateSortingFn = (rowA: any, rowB: any, columnId: string) => {
+  const dateA = rowA.getValue(columnId);
+  const dateB = rowB.getValue(columnId);
+
+  // null/undefined 처리
+  if (!dateA && !dateB) return 0;
+  if (!dateA) return 1;  // null은 뒤로
+  if (!dateB) return -1;
+
+  // Date 객체로 변환하여 비교
+  return new Date(dateA).getTime() - new Date(dateB).getTime();
+};
+
+const getEmployeeStatusBadgeClassName = (status: EmployeeStatus) => {
+  const base =
+    'inline-flex items-center justify-center rounded-full px-3 py-[3px] text-sm font-semibold leading-[1.4]';
+  switch (status) {
+    case EmployeeStatus.ACTIVE:
+      return `${base} bg-[#E8FFF1] text-[#12B76A]`;
+    case EmployeeStatus.LEAVING:
+      return `${base} bg-[#FCF4D0] text-[#EA981E]`;
+    case EmployeeStatus.PENDING:
+      return `${base} bg-[#F2FAFF] text-[#009DFF]`;
+    case EmployeeStatus.REJECTED:
+      return `${base} bg-[#FEF3F2] text-[#F04438]`;
+    case EmployeeStatus.LEFT:
+      return `${base} bg-[#F4F4F4] text-[#6C7885]`;
+    default:
+      return `${base} bg-[#F4F4F4] text-[#6C7885]`;
+  }
+};
+
+const employeeStatusLabel: Record<EmployeeStatus, string> = {
+  [EmployeeStatus.PENDING]: '승인 대기',
+  [EmployeeStatus.REJECTED]: '승인 거절',
+  [EmployeeStatus.ACTIVE]: '재직중',
+  [EmployeeStatus.LEAVING]: '퇴사 예정',
+  [EmployeeStatus.LEFT]: '퇴사',
+};
 
 export default function EmployeeTable({ data }: EmployeeTableProps) {
-  const queryClient = useQueryClient();
-
-  // State
-  const [sorting, setSorting] = useState<SortingState>({ key: 'name', direction: 'asc' });
-  const [isJamModalOpen, setIsJamModalOpen] = useState(false);
-  const [editingEmployee, setEditingEmployee] = useState<EmployeeType | null>(null);
-  const [statusChangingEmployee, setStatusChangingEmployee] = useState<EmployeeType | null>(null);
-  const [groupChangingEmployee, setGroupChangingEmployee] = useState<EmployeeType | null>(null);
+  // TanStack Table State
+  const [sorting, setSorting] = useState<SortingState>([{ id: 'name', desc: false }]);
   const [globalFilter, setGlobalFilter] = useState('');
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
+
+  // Modal State
+  const [isJamModalOpen, setIsJamModalOpen] = useState(false);
+  const [editingEmployee, setEditingEmployee] = useState<EmployeeTableData | null>(null);
+  const [statusChangingEmployee, setStatusChangingEmployee] = useState<EmployeeTableData | null>(null);
+  const [groupChangingEmployee, setGroupChangingEmployee] = useState<EmployeeTableData | null>(null);
   const [statusFilter, setStatusFilter] = useState('all');
-  const [pageSize, setPageSize] = useState(20);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [selectedRows, setSelectedRows] = useState(new Set<string>());
 
-  // Filtering
+  // Scroll State
+  const [isScrolled, setIsScrolled] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // 스크롤 감지
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      setIsScrolled(container.scrollLeft > 0);
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // 피그마 기준 컬럼 폭(px)
+  const columnWidths = {
+    select: 58,
+    employee_code: 77,
+    name: 106,
+    phone: 156,
+    email: 169,
+    jam_balance: 236,
+    join_date: 122,
+    resignation_date: 150,
+    membership_start_date: 150,
+    employment_status: 160,
+    group_name: 150,
+  };
+
+  // 상태 필터링이 적용된 데이터
   const filteredData = useMemo(() => {
-    return data.filter((item) => {
-      const matchesGlobal =
-        item.name.toLowerCase().includes(globalFilter.toLowerCase()) ||
-        item.employee_code.includes(globalFilter) ||
-        item.email.toLowerCase().includes(globalFilter.toLowerCase());
+    if (statusFilter === 'all') return data;
+    if (statusFilter === 'default') {
+      return data.filter((item) => {
+        return item.status === EmployeeStatus.ACTIVE || item.status === EmployeeStatus.LEAVING;
+      });
+    }
+    return data.filter((item) => item.status === statusFilter);
+  }, [data, statusFilter]);
 
-      const matchesStatus = statusFilter === 'all' || item.employment_status === statusFilter;
+  // TanStack Table 컬럼 정의
+  const columns = useMemo(
+    () => [
+      columnHelper.display({
+        id: 'select',
+        size: columnWidths.select,
+        enableResizing: false,
+        header: '선택',
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+          />
+        ),
+      }),
+      columnHelper.accessor('employeeNumber', {
+        header: '사번',
+        size: columnWidths.employee_code,
+        cell: (info) => <div className="truncate">{info.getValue()}</div>,
+      }),
+      columnHelper.accessor('name', {
+        header: '이름',
+        size: columnWidths.name,
+        cell: (info) => <div className="truncate">{info.getValue()}</div>,
+      }),
+      columnHelper.accessor('phoneNumber', {
+        header: '전화번호',
+        size: columnWidths.phone,
+        enableSorting: false,
+        cell: (info) => {
+          const phone = info.getValue();
+          // 11자리 전화번호 포맷팅: 01012345678 -> 010-1234-5678
+          const formatted =
+            phone && phone.replace(/\D/g, '').length === 11
+              ? phone.replace(/\D/g, '').replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3')
+              : phone;
+          return <div className="truncate">{formatted}</div>;
+        },
+      }),
+      columnHelper.accessor('email', {
+        header: '이메일',
+        size: columnWidths.email,
+        cell: (info) => <div className="truncate">{info.getValue()}</div>,
+      }),
+      columnHelper.accessor('balanceJams', {
+        header: '잼 잔여량',
+        size: columnWidths.jam_balance,
+        cell: ({ row }) => {
+          const balance = row.original.balanceJams;
+          const capacity = row.original.totalJams || 100000;
+          const percentage = (balance / capacity) * 100;
+          return (
+            <div className="flex items-center gap-3">
+              <Progress
+                value={percentage}
+                className="h-2 w-24 bg-gray-100"
+                indicatorClassName="bg-[#FEE666]"
+              />
+              <span className="text-xs font-bold text-gray-700">{Math.round(percentage)}%</span>
+            </div>
+          );
+        },
+      }),
+      columnHelper.accessor('joinDate', {
+        header: '입사일',
+        size: columnWidths.join_date,
+        sortingFn: dateSortingFn,
+        cell: (info) => (
+          <div className="truncate">
+            {info.getValue() ? format(new Date(info.getValue()), 'yyyy-MM-dd') : '-'}
+          </div>
+        ),
+      }),
+      columnHelper.accessor('leaveDate', {
+        header: '퇴사일',
+        size: columnWidths.resignation_date,
+        sortingFn: dateSortingFn,
+        cell: ({ row }) => {
+          const status = row.original.status as EmployeeStatus;
+          const leaveDate = row.original.leaveDate;
 
-      return matchesGlobal && matchesStatus;
-    });
-  }, [data, globalFilter, statusFilter]);
+          // LEAVING 또는 LEFT 상태일 때만 퇴사일 표시
+          if (status === EmployeeStatus.LEAVING || status === EmployeeStatus.LEFT) {
+            return (
+              <div className="truncate">
+                {leaveDate ? format(new Date(leaveDate), 'yyyy-MM-dd') : '-'}
+              </div>
+            );
+          }
 
-  // Sorting
-  const sortedData = useMemo(() => {
-    return [...filteredData].sort((a, b) => {
-      if (a[sorting.key] < b[sorting.key]) return sorting.direction === 'asc' ? -1 : 1;
-      if (a[sorting.key] > b[sorting.key]) return sorting.direction === 'asc' ? 1 : -1;
-      return 0;
-    });
-  }, [filteredData, sorting]);
+          return <div className="truncate">-</div>;
+        },
+      }),
+      columnHelper.accessor('membershipStartDate', {
+        header: '멤버십 개시일',
+        size: columnWidths.membership_start_date,
+        sortingFn: dateSortingFn,
+        cell: (info) => (
+          <div className="truncate">
+            {info.getValue() ? format(new Date(info.getValue()), 'yyyy-MM-dd') : '-'}
+          </div>
+        ),
+      }),
+      columnHelper.accessor('status', {
+        header: '재직상태',
+        size: columnWidths.employment_status,
+        cell: ({ row }) => {
+          const status = row.original.status as EmployeeStatus;
+          return (
+            <div className="flex items-center justify-between gap-2 min-w-0">
+              <div className="flex-1 min-w-0">
+                <span className={getEmployeeStatusBadgeClassName(status)}>
+                  {employeeStatusLabel[status]}
+                </span>
+              </div>
+              <button
+                onClick={() => setStatusChangingEmployee(row.original)}
+                className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
+                aria-label="상태 변경"
+              >
+                <Pencil className="h-4 w-4" />
+              </button>
+            </div>
+          );
+        },
+      }),
+      columnHelper.accessor('groupName', {
+        header: '그룹',
+        size: columnWidths.group_name,
+        cell: ({ row }) => (
+          <div className="flex items-center justify-between gap-2 min-w-0">
+            <span className="text-gray-600 flex-1 min-w-0 truncate">
+              {row.original.groupName || '그룹 없음'}
+            </span>
+            <button
+              onClick={() => setGroupChangingEmployee(row.original)}
+              className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
+              aria-label="그룹 변경"
+            >
+              <Pencil className="h-4 w-4" />
+            </button>
+          </div>
+        ),
+      }),
+    ],
+    [columnWidths]
+  );
 
-  // Pagination
-  const totalPages = Math.ceil(sortedData.length / pageSize);
-  const paginatedData = sortedData.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  // TanStack Table 인스턴스
+  const table = useReactTable({
+    data: filteredData,
+    columns,
+    initialState: {
+      pagination: { pageSize: 20 },
+    },
+    state: {
+      sorting,
+      globalFilter,
+      columnFilters,
+      rowSelection,
+      columnSizing,
+    },
+    enableRowSelection: true,
+    enableColumnResizing: true,
+    columnResizeMode: 'onChange',
+    onSortingChange: setSorting,
+    onGlobalFilterChange: setGlobalFilter,
+    onColumnFiltersChange: setColumnFilters,
+    onRowSelectionChange: setRowSelection,
+    onColumnSizingChange: setColumnSizing,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getRowId: (row) => row.id,
+    globalFilterFn: (row, _columnId, filterValue) => {
+      const search = filterValue.toLowerCase();
+      return (
+        row.original.employeeNumber.toLowerCase().includes(search) ||
+        (row.original.phoneNumber || '').toLowerCase().includes(search) ||
+        row.original.email.toLowerCase().includes(search)
+      );
+    },
+  });
+
+  // 선택된 행 수
+  const selectedRowCount = Object.keys(rowSelection).length;
+  const selectedEmployees = useMemo(
+    () =>
+      table
+        .getSelectedRowModel()
+        .rows.map((r) => ({ id: r.original.id, name: r.original.name })),
+    [table, rowSelection]
+  );
 
   // Handlers
-  const handleSort = (key: string) => {
-    setSorting((prev) => ({
-      key,
-      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc',
-    }));
+  const handleJamAllocation = (amount: number, expiryDate: string) => {
+    toast.success(`${selectedRowCount}명의 직원에게 각각 ${amount}잼이 할당되었습니다. (만료일: ${expiryDate})`);
+    setRowSelection({});
   };
 
-  const handleJamAllocation = (amount: number) => {
-    // Here you would normally call an API to allocate jams
-    toast.success(`${selectedRows.size}명의 직원에게 각각 ${amount}잼이 할당되었습니다.`);
-    setSelectedRows(new Set());
-  };
-
-  const updateEmployeeMutation = useMutation({
-    mutationFn: (updatedData: EmployeeType) => Employee.update(updatedData.id, updatedData),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['employees'] });
-      toast.success('직원 정보가 수정되었습니다.');
-      setEditingEmployee(null);
-    },
-    onError: () => {
-      toast.error('직원 정보 수정에 실패했습니다.');
-    },
-  });
-
-  const updateEmployeeStatusMutation = useMutation({
-    mutationFn: (updatedData: EmployeeType) => Employee.update(updatedData.id, updatedData),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['employees'] });
-      toast.success('직원 상태가 변경되었습니다.');
-      setStatusChangingEmployee(null);
-    },
-    onError: () => {
-      toast.error('직원 상태 변경에 실패했습니다.');
-    },
-  });
-
-  const updateEmployeeGroupMutation = useMutation({
-    mutationFn: (updatedData: EmployeeType) => Employee.update(updatedData.id, updatedData),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['employees'] });
-      toast.success('직원 그룹이 변경되었습니다.');
-      setGroupChangingEmployee(null);
-    },
-    onError: () => {
-      toast.error('직원 그룹 변경에 실패했습니다.');
-    },
-  });
-
-  const handleSaveEmployee = (updatedData: EmployeeType) => {
-    updateEmployeeMutation.mutate(updatedData);
-  };
-
-  const handleSaveStatusChange = (updatedData: EmployeeType) => {
-    updateEmployeeStatusMutation.mutate(updatedData);
-  };
-
-  const handleSaveGroupChange = (updatedData: EmployeeType) => {
-    updateEmployeeGroupMutation.mutate(updatedData);
-  };
-
-  const toggleSelectAll = () => {
-    if (selectedRows.size === paginatedData.length) {
-      setSelectedRows(new Set());
-    } else {
-      setSelectedRows(new Set(paginatedData.map((item) => item.id)));
-    }
-  };
-
-  const toggleSelectRow = (id: string) => {
-    const newSelected = new Set(selectedRows);
-    if (newSelected.has(id)) {
-      newSelected.delete(id);
-    } else {
-      newSelected.add(id);
-    }
-    setSelectedRows(newSelected);
-  };
-
-  // Helper for columns
-  const columns = [
-    // 피그마(Table node 16436:14421) 기준 컬럼 폭(px) 적용
-    { key: 'employee_code', label: '사번', sortable: true, width: 77 },
-    { key: 'name', label: '이름', sortable: true, width: 106 },
-    { key: 'phone', label: '전화번호', sortable: false, width: 156 },
-    { key: 'email', label: '이메일', sortable: true, width: 169 },
-    { key: 'jam_balance', label: '잼 잔여량', sortable: true, width: 236 },
-    { key: 'join_date', label: '입사일', sortable: true, width: 122 },
-    { key: 'employment_status', label: '재직 상태', sortable: true, width: 152 },
-    { key: 'group_name', label: '그룹', sortable: true, width: 150 },
-  ];
+  // 페이지네이션 정보
+  const pageCount = table.getPageCount();
+  const currentPage = table.getState().pagination.pageIndex + 1;
 
   return (
-    <div className="flex flex-col h-full bg-white ">
+    <div className="flex flex-col h-full bg-white">
       {/* Toolbar */}
       <div className="py-4 flex items-center justify-between gap-4 bg-white">
         <div className="flex items-center gap-3 flex-1">
@@ -170,22 +350,20 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
             onValueChange={setStatusFilter}
             items={[
               { value: 'all', label: '전체 상태' },
-              { value: 'active', label: '재직중' },
-              { value: 'resigning', label: '퇴사 예정' },
-              { value: 'inactive', label: '퇴사' },
+              { value: 'default', label: '기본' },
+              { value: EmployeeStatus.LEFT, label: '퇴사' },
+              { value: EmployeeStatus.PENDING, label: '승인 대기' },
+              { value: EmployeeStatus.REJECTED, label: '승인 거절' },
             ]}
             placeholder="전체 상태"
             triggerClassName="w-[120px]"
-            itemClassName="focus:bg-[#FFFDD2] focus:text-gray-900 cursor-pointer"
           />
 
           <div className="relative w-64">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
             <Input
               placeholder="검색"
               value={globalFilter}
               onChange={(e: ChangeEvent<HTMLInputElement>) => setGlobalFilter(e.target.value)}
-              className="pl-9"
             />
           </div>
         </div>
@@ -193,10 +371,9 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
         <div className="flex items-center gap-3">
           <span className="text-sm text-gray-500 whitespace-nowrap">페이지당 항목 수:</span>
           <SimpleSelect
-            value={String(pageSize)}
+            value={String(table.getState().pagination.pageSize)}
             onValueChange={(v) => {
-              setPageSize(Number(v));
-              setCurrentPage(1);
+              table.setPageSize(Number(v));
             }}
             items={[
               { value: '10', label: '10' },
@@ -205,16 +382,11 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
               { value: '100', label: '100' },
             ]}
             triggerClassName="w-[70px]"
-            itemClassName="focus:bg-[#FFFDD2] focus:text-gray-900 cursor-pointer"
           />
 
           <Button
-            className={`border-0 transition-colors duration-200 ${
-              selectedRows.size > 0
-                ? 'bg-[#282821] text-[#FFFA97] hover:bg-[#282821]/90'
-                : 'bg-[#D9D9D9] text-[#6C7885] hover:bg-[#D9D9D9]'
-            }`}
-            disabled={selectedRows.size === 0}
+            variant={selectedRowCount > 0 ? 'active' : 'inactive'}
+            disabled={selectedRowCount === 0}
             onClick={() => setIsJamModalOpen(true)}
           >
             잼 할당
@@ -223,145 +395,107 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
       </div>
 
       {/* Table Area */}
-      <ScrollableTableContainer>
-        <table className="w-full table-fixed min-w-[1348px] caption-bottom text-sm">
-          <colgroup>
-            {/* 피그마 체크박스 컬럼 폭 */}
-            <col style={{ width: 58 }} />
-            {columns.map((col) => (
-              <col key={col.key} style={{ width: col.width }} />
-            ))}
-          </colgroup>
-            <thead className="bg-gray-50 sticky top-0 z-10 shadow-sm">
-              <TableRow>
-              <TableHead className="text-center">
-                <Checkbox
-                  checked={selectedRows.size === paginatedData.length && paginatedData.length > 0}
-                  onCheckedChange={toggleSelectAll}
-                />
-              </TableHead>
-              {columns.map((col) => (
-                <TableHead
-                  key={col.key}
-                  className={`text-xs font-semibold text-gray-600 ${col.sortable ? 'cursor-pointer select-none hover:bg-gray-100' : ''}`}
-                  onClick={() => col.sortable && handleSort(col.key)}
-                >
-                  <div className="flex items-center gap-1">
-                    {col.label}
-                    {col.sortable && <ArrowUpDown className="w-3 h-3 text-gray-400" />}
-                  </div>
-                </TableHead>
-              ))}
-            </TableRow>
-            </thead>
-            <tbody className="[&_tr:last-child]:border-0">
-              {paginatedData.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={columns.length + 1} className="h-24 text-center text-gray-500">
-                    데이터가 없습니다.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                paginatedData.map((row) => (
-                  <TableRow key={row.id} className="hover:bg-gray-50/50">
-                    <TableCell className="text-center">
-                      <Checkbox
-                        checked={selectedRows.has(row.id)}
-                        onCheckedChange={() => toggleSelectRow(row.id)}
-                      />
-                    </TableCell>
-                    <TableCell className="font-mono text-gray-600">
-                      <div className="truncate">{row.employee_code}</div>
-                    </TableCell>
-                    <TableCell className="font-medium text-gray-900">
-                      <div className="truncate">{row.name}</div>
-                    </TableCell>
-                    <TableCell className="text-gray-600">
-                      <div className="truncate">{row.phone}</div>
-                    </TableCell>
-                    <TableCell className="text-gray-600">
-                      <div className="truncate">{row.email}</div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Progress
-                          value={(row.jam_balance / (row.jam_capacity || 100000)) * 100}
-                          className="h-2 w-24 bg-gray-100"
-                          indicatorClassName="bg-[#FEE666]"
-                        />
-                        <span className="text-xs font-bold text-gray-700">
-                          {Math.round((row.jam_balance / (row.jam_capacity || 100000)) * 100)}%
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-gray-600">
-                      <div className="truncate">
-                        {row.join_date ? format(new Date(row.join_date), 'yyyy-MM-dd') : '-'}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center justify-between gap-2 min-w-0">
-                        <div className="flex-1 min-w-0">
-                          {(row.employment_status === 'active' || row.employment_status === EmployeeStatus.ACTIVE) && (
-                            <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-0 font-normal">
-                              재직중
-                            </Badge>
-                          )}
-                          {(row.employment_status === 'resigning' || row.employment_status === EmployeeStatus.LEAVING) && (
-                            <div className="flex flex-col items-start gap-0.5">
-                              <Badge className="bg-gray-100 text-gray-500 hover:bg-gray-100 border-0 font-normal">
-                                퇴사 예정
-                              </Badge>
-                              {row.resignation_date && (
-                                <span className="text-[10px] text-gray-400">
-                                  {format(new Date(row.resignation_date), 'yyyy-MM-dd')}
-                                </span>
+      <ScrollableTableContainer ref={scrollContainerRef}>
+        <table
+          className="w-full min-w-[1348px] caption-bottom text-sm"
+          style={{ width: table.getCenterTotalSize() }}
+        >
+          <thead className="bg-gray-50 sticky top-0 z-20">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  const canSort = header.column.getCanSort();
+                  const isSorted = header.column.getIsSorted();
+                  const canResize = header.column.getCanResize();
+                  return (
+                    <TableHead
+                      key={header.id}
+                      style={{ width: header.getSize() }}
+                      className={`relative text-xs font-semibold text-gray-600 ${
+                        header.id === 'select'
+                          ? `sticky left-0 z-30 bg-gray-50 ${isScrolled ? 'border-r border-border-default' : ''}`
+                          : ''
+                      } ${canSort ? 'cursor-pointer select-none hover:bg-gray-100' : ''}`}
+                      onClick={canSort ? header.column.getToggleSortingHandler() : undefined}
+                    >
+                      {header.isPlaceholder ? null : (
+                        <div className={`flex items-center gap-1 ${header.id === 'select' ? 'justify-center' : ''}`}>
+                          {flexRender(header.column.columnDef.header, header.getContext())}
+                          {canSort && header.id !== 'select' && (
+                            <>
+                              {isSorted === 'asc' && (
+                                <ArrowUp className="w-3 h-3 text-gray-700" />
                               )}
-                            </div>
-                          )}
-                          {(row.employment_status === 'inactive' || row.employment_status === EmployeeStatus.LEFT) && (
-                            <Badge className="text-gray-400 border-gray-200 font-normal">
-                              퇴사
-                            </Badge>
-                          )}
-                          {row.employment_status === EmployeeStatus.PENDING && (
-                            <Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-100 border-0 font-normal">
-                              승인 대기
-                            </Badge>
-                          )}
-                          {row.employment_status === EmployeeStatus.REJECTED && (
-                            <Badge className="bg-red-100 text-red-700 hover:bg-red-100 border-0 font-normal">
-                              승인 거절
-                            </Badge>
+                              {isSorted === 'desc' && (
+                                <ArrowDown className="w-3 h-3 text-gray-700" />
+                              )}
+                              {!isSorted && (
+                                <ArrowUpDown className="w-3 h-3 text-gray-400" />
+                              )}
+                            </>
                           )}
                         </div>
-                        <button
-                          onClick={() => setStatusChangingEmployee(row)}
-                          className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
-                          aria-label="상태 변경"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center justify-between gap-2 min-w-0">
-                        <span className="text-gray-600 flex-1 min-w-0 truncate">
-                          {row.group_name || '그룹 없음'}
-                        </span>
-                        <button
-                          onClick={() => setGroupChangingEmployee(row)}
-                          className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
-                          aria-label="그룹 변경"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </tbody>
+                      )}
+                      {/* 리사이즈 핸들러 */}
+                      {canResize && (
+                        <div
+                          onMouseDown={header.getResizeHandler()}
+                          onTouchStart={header.getResizeHandler()}
+                          onClick={(e) => e.stopPropagation()}
+                          className={`absolute right-0 top-0 h-full w-1 cursor-col-resize select-none touch-none bg-transparent hover:bg-yellow-400 ${
+                            header.column.getIsResizing() ? 'bg-yellow-500' : ''
+                          }`}
+                        />
+                      )}
+                    </TableHead>
+                  );
+                })}
+              </TableRow>
+            ))}
+          </thead>
+          <tbody className="[&_tr:last-child]:border-0">
+            {table.getRowModel().rows.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={table.getAllColumns().length}
+                  className="h-24 text-center text-gray-500"
+                >
+                  데이터가 없습니다.
+                </TableCell>
+              </TableRow>
+            ) : (
+              table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id} className="hover:bg-gray-50/50">
+                  {row.getVisibleCells().map((cell) => {
+                    const columnId = cell.column.id;
+                    let cellClassName = '';
+                    if (columnId === 'select') {
+                      cellClassName = `text-center sticky left-0 z-10 bg-white ${isScrolled ? 'border-r border-border-default' : ''}`;
+                    } else if (columnId === 'employee_code') {
+                      cellClassName = 'font-mono text-gray-600';
+                    } else if (columnId === 'name') {
+                      cellClassName = 'font-medium text-gray-900';
+                    } else if (
+                      columnId === 'phone' ||
+                      columnId === 'email' ||
+                      columnId === 'join_date'
+                    ) {
+                      cellClassName = 'text-gray-600';
+                    }
+                    return (
+                      <TableCell
+                        key={cell.id}
+                        style={{ width: cell.column.getSize() }}
+                        className={cellClassName}
+                      >
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    );
+                  })}
+                </TableRow>
+              ))
+            )}
+          </tbody>
         </table>
       </ScrollableTableContainer>
 
@@ -369,103 +503,40 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
         isOpen={isJamModalOpen}
         onClose={() => setIsJamModalOpen(false)}
         onConfirm={handleJamAllocation}
-        availablePoints={100} // Mocked value as per requirement
+        availableJam={400} // Mocked value as per requirement
+        targets={selectedEmployees}
       />
 
       <EmployeeEditModal
         isOpen={!!editingEmployee}
         onClose={() => setEditingEmployee(null)}
-        onSave={handleSaveEmployee}
         employee={editingEmployee}
       />
 
       <EmployeeStatusChangeModal
         isOpen={!!statusChangingEmployee}
         onClose={() => setStatusChangingEmployee(null)}
-        onSave={handleSaveStatusChange}
         employee={statusChangingEmployee}
-        isSubmitting={updateEmployeeStatusMutation.isPending}
       />
 
       <EmployeeGroupChangeModal
         isOpen={!!groupChangingEmployee}
         onClose={() => setGroupChangingEmployee(null)}
-        onSave={handleSaveGroupChange}
         employee={groupChangingEmployee}
-        isSubmitting={updateEmployeeGroupMutation.isPending}
       />
 
       {/* Footer Pagination */}
-      <div className="p-4 border-t border-gray-100 flex items-center justify-center gap-2 bg-white">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-gray-500 text-xs"
-          onClick={() => setCurrentPage(1)}
-          disabled={currentPage === 1}
-        >
-          처음
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-gray-500 text-xs gap-1"
-          onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-          disabled={currentPage === 1}
-        >
-          <ChevronLeft className="w-4 h-4" /> 이전
-        </Button>
-
-        <div className="flex items-center gap-1 mx-2">
-          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-            // Simple logic to show window around current page could be added,
-            // but for now showing first 5 or logic to keep it simple
-            let p = i + 1;
-            if (totalPages > 5 && currentPage > 3) {
-              p = currentPage - 2 + i;
-              if (p > totalPages) p = p - (p - totalPages); // Clamp
-            }
-            // Adjust if we are near end
-            if (totalPages > 5 && currentPage > totalPages - 2) {
-              p = totalPages - 4 + i;
-            }
-
-            // Basic clamp for safety
-            if (p <= 0 || p > totalPages) return null;
-
-            return (
-              <Button
-                key={p}
-                variant={currentPage === p ? 'default' : 'ghost'}
-                size="sm"
-                className={`w-8 h-8 p-0 text-xs ${currentPage === p ? 'bg-yellow-400 text-gray-900 hover:bg-yellow-500' : 'text-gray-500'}`}
-                onClick={() => setCurrentPage(p)}
-              >
-                {p}
-              </Button>
-            );
-          })}
-        </div>
-
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-gray-500 text-xs gap-1"
-          onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-          disabled={currentPage === totalPages || totalPages === 0}
-        >
-          다음 <ChevronRight className="w-4 h-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-gray-500 text-xs"
-          onClick={() => setCurrentPage(totalPages)}
-          disabled={currentPage === totalPages || totalPages === 0}
-        >
-          끝
-        </Button>
-      </div>
+      <TablePagination
+        currentPage={currentPage}
+        pageCount={pageCount}
+        canPreviousPage={table.getCanPreviousPage()}
+        canNextPage={table.getCanNextPage()}
+        onFirstPage={() => table.setPageIndex(0)}
+        onPreviousPage={() => table.previousPage()}
+        onNextPage={() => table.nextPage()}
+        onLastPage={() => table.setPageIndex(pageCount - 1)}
+        onPageChange={(page) => table.setPageIndex(page - 1)}
+      />
     </div>
   );
 }

@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Pretendard 폰트 정의 */
+@font-face {
+  font-family: 'Pretendard';
+  src: url('/fonts/PretendardVariable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -113,6 +122,7 @@ button:focus-visible {
     --border-default: #E3E7EC;
     --text-secondary: #525E6A;
     --text-primary: #222;
+    --Text-primary: #141414;
     --red-red-50: #FEF3F2;
     --gray-20: #E2E8F0;
     --text-tertiary: #6C7885;
@@ -164,7 +174,9 @@ button:focus-visible {
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background font-sans;
+    color: var(--Text-primary, #141414);
+    line-height: 1.4;
   }
 }
 

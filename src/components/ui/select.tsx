@@ -15,7 +15,7 @@ interface SelectTriggerProps extends React.ComponentPropsWithoutRef<typeof Selec
 const SelectTrigger = ({ className, children, ...props }: SelectTriggerProps) => (
   <SelectPrimitive.Trigger
     className={cn(
-      'flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-border-default bg-white px-3 py-2 text-sm shadow-sm ring-offset-background data-[placeholder]:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1',
+      'flex h-11 w-full items-center justify-between whitespace-nowrap rounded-lg border border-border-default bg-white px-3 py-2 text-sm ring-offset-background data-[placeholder]:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1',
       className
     )}
     {...props}
@@ -137,6 +137,7 @@ interface SimpleSelectProps {
   placeholder?: string;
   triggerClassName?: string;
   itemClassName?: string;
+  disabled?: boolean;
   // 커스텀 렌더링 함수들
   renderItem?: (item: SelectOption, isSelected?: boolean) => React.ReactNode;
   renderValue?: (selectedItem: SelectOption | undefined) => React.ReactNode;
@@ -148,14 +149,15 @@ const SimpleSelect = ({
   items,
   placeholder = 'Select...',
   triggerClassName,
-  itemClassName,
+  itemClassName = 'focus:bg-[#FFFDD2] cursor-pointer rounded-[4px]',
+  disabled = false,
   renderItem,
   renderValue,
 }: SimpleSelectProps) => {
   const selectedItem = items.find((item) => item.value === value);
 
   return (
-    <Select value={value} onValueChange={onValueChange}>
+    <Select value={value} onValueChange={onValueChange} disabled={disabled}>
       <SelectTrigger className={triggerClassName}>
         {renderValue && selectedItem ? (
           <div className="flex items-center justify-between w-full">

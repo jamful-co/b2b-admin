@@ -1,39 +1,31 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
 import { SimpleSelect } from '@/components/ui/select';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { EmployeeStatus, type Employee as EmployeeType } from '@/api/entities';
-import { format } from 'date-fns';
-import { CalendarIcon, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { EmployeeStatus } from '@/api/entities';
+import { format, parse } from 'date-fns';
+import { AlertCircle, CalendarIcon, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+import { useUpdateEmployeeStatus } from '@/hooks/useUpdateEmployeeStatus';
+import { useEmployeeGroups } from '@/hooks/useEmployeeGroup';
+import { getCompanyId } from '@/lib/company';
+import { EmployeeStatusAction, ApproverType, type EmployeeTableData } from '@/graphql/types';
 
 interface EmployeeStatusChangeModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (employee: EmployeeType) => void;
-  employee: EmployeeType | null;
-  isSubmitting?: boolean;
+  employee: EmployeeTableData | null;
 }
 
-// 상태 라벨 매핑
+// 상태 라벨 매핑 (테이블 재직상태 렌더링 로직과 동일)
 const statusLabels: Record<EmployeeStatus, string> = {
   [EmployeeStatus.PENDING]: '승인 대기',
   [EmployeeStatus.REJECTED]: '승인 거절',
@@ -46,17 +38,17 @@ const statusLabels: Record<EmployeeStatus, string> = {
 const getStatusBadgeStyle = (status: EmployeeStatus) => {
   switch (status) {
     case EmployeeStatus.PENDING:
-      return 'bg-blue-50 text-blue-600';
+      return 'bg-[#F2FAFF] text-[#009DFF]';
     case EmployeeStatus.REJECTED:
-      return 'bg-red-50 text-red-600';
+      return 'bg-[#FEF3F2] text-[#F04438]';
     case EmployeeStatus.ACTIVE:
-      return 'bg-green-50 text-green-600';
+      return 'bg-[#E8FFF1] text-[#12B76A]';
     case EmployeeStatus.LEAVING:
-      return 'bg-gray-50 text-gray-600';
+      return 'bg-[#FCF4D0] text-[#EA981E]';
     case EmployeeStatus.LEFT:
-      return 'bg-gray-100 text-gray-500';
+      return 'bg-[#F4F4F4] text-[#6C7885]';
     default:
-      return 'bg-gray-50 text-gray-600';
+      return 'bg-[#F4F4F4] text-[#6C7885]';
   }
 };
 
@@ -77,7 +69,7 @@ const StatusBadge = ({
   
   return (
     <span className={cn(
-      'inline-flex items-center px-2.5 py-1 rounded-md text-sm font-medium',
+      'inline-flex items-center justify-center rounded-full px-3 py-[3px] text-sm font-semibold leading-[1.4]',
       getStatusBadgeStyle(status),
       hoverStyle
     )}>
@@ -89,38 +81,50 @@ const StatusBadge = ({
 export default function EmployeeStatusChangeModal({
   isOpen,
   onClose,
-  onSave,
   employee,
-  isSubmitting = false,
 }: EmployeeStatusChangeModalProps) {
   const [selectedStatus, setSelectedStatus] = useState<EmployeeStatus | string>('');
+  const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
   const [resignationDate, setResignationDate] = useState<Date | undefined>(undefined);
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [dateInputValue, setDateInputValue] = useState<string>('');
+  const [dateInputError, setDateInputError] = useState<string>('');
   const [dateValidation, setDateValidation] = useState<{
     isValid: boolean;
     message: string;
   } | null>(null);
 
+  const companyId = getCompanyId();
+
+  // 그룹 목록 가져오기 (GraphQL)
+  const { data: groupsData } = useEmployeeGroups(companyId);
+  const groups = groupsData?.groups ?? [];
+
+  // 임직원 상태 변경 mutation
+  const { mutate: updateEmployeeStatus, isPending: isMutationPending } = useUpdateEmployeeStatus();
+
   useEffect(() => {
     if (employee) {
-      // 기존 상태를 EmployeeStatus로 변환 (하위 호환성)
-      const currentStatus = employee.employment_status;
-      if (currentStatus === 'active') {
-        setSelectedStatus(EmployeeStatus.ACTIVE);
-      } else if (currentStatus === 'resigning') {
-        setSelectedStatus(EmployeeStatus.LEAVING);
-      } else if (currentStatus === 'inactive') {
-        setSelectedStatus(EmployeeStatus.LEFT);
+      setSelectedStatus(employee.status);
+
+      // 기존 그룹 설정 - 그룹명으로 그룹 ID 찾기
+      if (employee.groupName && groups.length > 0) {
+        const matchingGroup = groups.find(g => g.name === employee.groupName);
+        setSelectedGroupId(matchingGroup?.employeeGroupId ?? null);
       } else {
-        setSelectedStatus(currentStatus as EmployeeStatus);
+        setSelectedGroupId(null);
       }
 
       // 기존 퇴사일이 있으면 설정
-      if (employee.resignation_date) {
-        setResignationDate(new Date(employee.resignation_date));
+      if (employee.leaveDate) {
+        const date = new Date(employee.leaveDate);
+        setResignationDate(date);
+        setDateInputValue(format(date, 'yyyy.MM.dd'));
+      } else {
+        setResignationDate(undefined);
+        setDateInputValue('');
       }
     }
-  }, [employee]);
+  }, [employee, groups]);
 
   // 날짜 유효성 검사
   useEffect(() => {
@@ -134,46 +138,46 @@ export default function EmployeeStatusChangeModal({
     const selectedDate = new Date(resignationDate);
     selectedDate.setHours(0, 0, 0, 0);
 
+    const currentStatus = employee?.status as EmployeeStatus;
+
     if (selectedStatus === EmployeeStatus.LEAVING) {
-      // 퇴사 예정일: 오늘 이후 날짜만 가능
+      // 퇴사 예정: 미래 날짜만 가능
       if (selectedDate > today) {
         setDateValidation({ isValid: true, message: '퇴사 예정일 설정 가능' });
       } else {
-        setDateValidation({ isValid: false, message: '오늘 이후 날짜만 선택 가능합니다.' });
+        setDateValidation({ isValid: false, message: '퇴사 예정은 미래 날짜만 선택 가능합니다.' });
       }
     } else if (selectedStatus === EmployeeStatus.LEFT) {
-      // 퇴사일: 오늘 이전 날짜만 가능
-      if (selectedDate < today) {
+      // 퇴사: 오늘이거나 과거 날짜만 가능
+      if (selectedDate <= today) {
         setDateValidation({ isValid: true, message: '퇴사일 설정 가능' });
       } else {
-        setDateValidation({ isValid: false, message: '오늘 이전 날짜만 선택 가능합니다.' });
+        setDateValidation({ isValid: false, message: '퇴사는 오늘이거나 과거 날짜만 선택 가능합니다.' });
       }
+    } else if (currentStatus === EmployeeStatus.LEAVING) {
+      // LEAVING 상태에서 날짜만 변경하는 경우: 모든 날짜 허용
+      // 날짜에 따라 자동으로 LEAVING/LEFT 결정됨
+      setDateValidation({ isValid: true, message: '날짜 설정 가능' });
     }
-  }, [resignationDate, selectedStatus]);
+  }, [resignationDate, selectedStatus, employee]);
 
   const handleStatusChange = (value: string) => {
     setSelectedStatus(value);
-    // 상태 변경 시 날짜 초기화
+
+    // 퇴사 상태가 아닌 경우 날짜 초기화
     if (value !== EmployeeStatus.LEAVING && value !== EmployeeStatus.LEFT) {
       setResignationDate(undefined);
+      setDateInputValue('');
+      setDateInputError('');
       setDateValidation(null);
     }
   };
 
-  const handleConfirm = () => {
+  const handleSaveClick = () => {
     if (!employee) return;
 
-    const updatedEmployee: EmployeeType = {
-      ...employee,
-      employment_status: selectedStatus as EmployeeStatus,
-      resignation_date: resignationDate ? format(resignationDate, 'yyyy-MM-dd') : undefined,
-    };
+    const currentStatus = employee.status as EmployeeStatus;
 
-    onSave(updatedEmployee);
-    setShowConfirmDialog(false);
-  };
-
-  const handleSaveClick = () => {
     // 날짜가 필요한 상태인데 유효하지 않은 경우 저장 불가
     if (
       (selectedStatus === EmployeeStatus.LEAVING || selectedStatus === EmployeeStatus.LEFT) &&
@@ -181,77 +185,126 @@ export default function EmployeeStatusChangeModal({
     ) {
       return;
     }
-    setShowConfirmDialog(true);
-  };
 
-  const getStatusInfoText = (status: EmployeeStatus | string): string | null => {
-    switch (status) {
-      case EmployeeStatus.PENDING:
-        return null;
-      case EmployeeStatus.REJECTED:
-        return '승인 거절 시 해당 사원은 서비스 사용이 불가합니다.';
-      case EmployeeStatus.ACTIVE:
-        if (employee?.employment_status === EmployeeStatus.PENDING) {
-          return '승인 시 해당 사원은 서비스 사용이 가능합니다.';
-        }
-        return '재직중 변경 시 상태가 \'재직중\'으로 변경되며, 해당 사원은 서비스 사용이 가능합니다.';
-      case EmployeeStatus.LEAVING:
-        return null; // 날짜 입력 필드가 표시됨
-      case EmployeeStatus.LEFT:
-        return null; // 날짜 입력 필드가 표시됨
-      default:
-        return null;
+    // LEAVING 상태에서 날짜만 변경하는 경우: 날짜에 따라 자동으로 액션 결정
+    let finalStatus = selectedStatus;
+    let action: EmployeeStatusAction;
+
+    if (currentStatus === EmployeeStatus.LEAVING && selectedStatus === EmployeeStatus.LEAVING && resignationDate) {
+      // LEAVING 상태에서 날짜만 변경: 날짜에 따라 자동 전환
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const selectedDate = new Date(resignationDate);
+      selectedDate.setHours(0, 0, 0, 0);
+
+      if (selectedDate <= today) {
+        // 과거/오늘 날짜 선택 시 자동으로 LEFT로 전환
+        finalStatus = EmployeeStatus.LEFT;
+        action = EmployeeStatusAction.LEAVE;
+      } else {
+        // 미래 날짜는 LEAVING 유지
+        action = EmployeeStatusAction.SCHEDULE_LEAVE;
+      }
+    } else {
+      // 일반적인 상태 전환
+      switch (selectedStatus) {
+        case EmployeeStatus.ACTIVE:
+          action = EmployeeStatusAction.APPROVE;
+          break;
+        case EmployeeStatus.REJECTED:
+          action = EmployeeStatusAction.REJECT;
+          break;
+        case EmployeeStatus.LEAVING:
+          action = EmployeeStatusAction.SCHEDULE_LEAVE;
+          break;
+        case EmployeeStatus.LEFT:
+          action = EmployeeStatusAction.LEAVE;
+          break;
+        default:
+          action = EmployeeStatusAction.APPROVE;
+      }
     }
+
+    // GraphQL mutation 호출
+    updateEmployeeStatus(
+      {
+        input: {
+          companyId,
+          id: employee.id,
+          action,
+          approverType: ApproverType.ADMIN,
+          approverId: companyId,
+          leaveDate: resignationDate ? format(resignationDate, 'yyyy-MM-dd') : undefined,
+          employeeGroupId: selectedGroupId ?? undefined,
+        },
+      },
+      {
+        onSuccess: () => {
+          toast.success('직원 상태가 변경되었습니다.');
+          onClose();
+        },
+        onError: (error) => {
+          console.error('Failed to update employee status:', error);
+          toast.error('직원 상태 변경에 실패했습니다.');
+        },
+      }
+    );
   };
 
-  const getConfirmDialogContent = () => {
-    switch (selectedStatus) {
-      case EmployeeStatus.REJECTED:
-        return {
-          title: '사원 상태를 승인 거절로 변경하시겠습니까?',
-          description:
-            '승인 거절 시 상태가 \'승인 거절\'로 변경되며, 해당 사원은 서비스 사용이 불가합니다.',
-        };
-      case EmployeeStatus.ACTIVE:
-        if (employee?.employment_status === EmployeeStatus.PENDING) {
-          return {
-            title: '사원 상태를 재직중으로 변경하시겠습니까?',
-            description:
-              '승인 시 상태가 \'재직중\'으로 변경되며, 해당 사원은 서비스 사용이 가능합니다.',
-          };
-        }
-        return {
-          title: '사원 상태를 재직중으로 변경하시겠습니까?',
-          description:
-            '재직중 변경 시 상태가 \'재직중\'으로 변경되며, 해당 사원은 서비스 사용이 가능합니다.',
-        };
-      case EmployeeStatus.LEAVING:
-        return {
-          title: '사원 상태를 퇴사 예정으로 변경하시겠습니까?',
-          description:
-            '퇴사 예정 시 상태가 \'퇴사 예정\'으로 변경되며, 설정한 퇴사 예정일까지 서비스 사용이 가능합니다.',
-        };
-      case EmployeeStatus.LEFT:
-        return {
-          title: '사원 상태를 퇴사로 변경하시겠습니까?',
-          description:
-            '퇴사 시 상태가 \'퇴사\'로 변경되며, 설정한 퇴사일 이후 서비스 사용이 불가합니다.',
-        };
-      default:
-        return {
-          title: '상태를 변경하시겠습니까?',
-          description: '상태 변경을 진행하시겠습니까?',
-        };
+  // 현재 상태 확인 함수
+  const getCurrentStatus = (): EmployeeStatus => {
+    if (!employee) return EmployeeStatus.PENDING;
+    return employee.status as EmployeeStatus;
+  };
+
+  // 현재 상태에 따라 허용되는 상태 전환 목록 결정
+  const getAvailableStatusTransitions = (): EmployeeStatus[] => {
+    if (!employee) return [];
+
+    const currentStatus = getCurrentStatus();
+
+    // 재직중 -> 재직중, 퇴사 예정, 퇴사
+    if (currentStatus === EmployeeStatus.ACTIVE) {
+      return [EmployeeStatus.ACTIVE, EmployeeStatus.LEAVING, EmployeeStatus.LEFT];
     }
+
+    // 승인 대기 -> 재직중, 승인 거절
+    if (currentStatus === EmployeeStatus.PENDING) {
+      return [EmployeeStatus.ACTIVE, EmployeeStatus.REJECTED];
+    }
+
+    // 승인 거절 -> 재직중
+    if (currentStatus === EmployeeStatus.REJECTED) {
+      return [EmployeeStatus.ACTIVE];
+    }
+
+    // 퇴사 예정 -> 퇴사 예정, 퇴사 (날짜 변경 가능)
+    if (currentStatus === EmployeeStatus.LEAVING) {
+      return [EmployeeStatus.LEAVING, EmployeeStatus.LEFT];
+    }
+
+    // 퇴사 -> 퇴사만 (날짜 변경 가능)
+    if (currentStatus === EmployeeStatus.LEFT) {
+      return [EmployeeStatus.LEFT];
+    }
+
+    // 기타 상태는 모든 상태로 전환 가능 (기본 동작)
+    return [
+      EmployeeStatus.ACTIVE,
+      EmployeeStatus.LEAVING,
+      EmployeeStatus.LEFT,
+      EmployeeStatus.PENDING,
+      EmployeeStatus.REJECTED,
+    ];
   };
 
-  const statusItems = Object.values(EmployeeStatus).map((status) => ({
+  const statusItems = getAvailableStatusTransitions().map((status) => ({
     value: status,
-    label: statusLabels[status],
+    label: statusLabels[status]
   }));
 
   // 커스텀 렌더링 함수들
-  const renderStatusItem = (item: { value: string; label: string }, isSelected?: boolean) => {
+  const renderStatusItem = (item: { value: string; label: string }) => {
     const status = item.value as EmployeeStatus;
     return (
       <StatusBadge status={status} label={item.label} />
@@ -264,29 +317,67 @@ export default function EmployeeStatusChangeModal({
     return <StatusBadge status={status} label={selectedItem.label} />;
   };
 
-  const infoText = getStatusInfoText(selectedStatus);
-  const needsDatePicker =
-    selectedStatus === EmployeeStatus.LEAVING || selectedStatus === EmployeeStatus.LEFT;
+  const currentStatus = getCurrentStatus();
+  const statusChanged = selectedStatus && selectedStatus !== currentStatus;
+
+  // 퇴사일 선택 필드 표시 조건: LEAVING/LEFT 선택 시 또는 이미 LEAVING/LEFT 상태일 때
+  const needsResignationDatePicker =
+    selectedStatus === EmployeeStatus.LEAVING ||
+    selectedStatus === EmployeeStatus.LEFT ||
+    currentStatus === EmployeeStatus.LEAVING ||
+    currentStatus === EmployeeStatus.LEFT;
+
+  // 그룹 선택 필드 표시 조건: 승인 대기 -> 재직중으로 변경할 때만
+  const needsGroupSelection =
+    currentStatus === EmployeeStatus.PENDING &&
+    selectedStatus === EmployeeStatus.ACTIVE;
+
+  // 퇴사일 변경 여부 확인
+  const resignationDateChanged = useMemo(() => {
+    if (!employee) return false;
+
+    const originalDate = employee.leaveDate;
+    const currentDate = resignationDate ? format(resignationDate, 'yyyy-MM-dd') : undefined;
+
+    return originalDate !== currentDate;
+  }, [employee, resignationDate]);
+
+  // 저장 가능 조건:
+  // 1. 상태가 변경되었거나
+  // 2. 퇴사/퇴사예정 상태에서 퇴사일이 변경된 경우
   const canSave =
+    (statusChanged ||
+     ((currentStatus === EmployeeStatus.LEAVING || currentStatus === EmployeeStatus.LEFT) &&
+      resignationDateChanged)) &&
     selectedStatus &&
-    (!needsDatePicker || (resignationDate && dateValidation?.isValid));
+    (!needsResignationDatePicker || (resignationDate && dateValidation?.isValid && !dateInputError));
+
+  // 그룹 아이템 목록
+  const groupItems = useMemo(() => {
+    return [
+      { value: 'null', label: '그룹 없음' },
+      ...groups.map((group) => ({
+        value: String(group.employeeGroupId),
+        label: group.name
+      })),
+    ];
+  }, [groups]);
 
   if (!employee) return null;
 
   return (
     <>
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="sm:max-w-[500px] p-6">
-          <DialogHeader className="mb-4">
-            <DialogTitle className="text-lg font-bold text-gray-900">상태 변경</DialogTitle>
+        <DialogContent className="w-[390px] max-w-[400px] rounded-[16px] bg-white p-6 gap-4 sm:max-w-none sm:rounded-[16px]">
+          <DialogHeader className="space-y-0">
+            <DialogTitle className="text-[22px] font-semibold leading-[1.4] text-[#141414]">
+              상태 변경
+            </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-6">
+          <div className="space-y-4">
             {/* 상태 선택 */}
-            <div className="space-y-2">
-              <Label htmlFor="status" className="text-sm font-medium text-gray-900">
-                상태*
-              </Label>
+            <div>
               <SimpleSelect
                 value={selectedStatus}
                 onValueChange={handleStatusChange}
@@ -297,102 +388,165 @@ export default function EmployeeStatusChangeModal({
               />
             </div>
 
-            {/* 정보 텍스트 */}
-            {infoText && (
-              <p className="text-sm text-gray-500">{infoText}</p>
+            {/* 그룹 선택 필드 - 승인 대기 -> 재직중으로 변경할 때만 표시 */}
+            {needsGroupSelection && (
+              <div>
+                <p className="text-sm font-semibold leading-[1.4] text-[#141414] mb-2">
+                  그룹
+                </p>
+                <SimpleSelect
+                  value={selectedGroupId === null ? 'null' : String(selectedGroupId)}
+                  onValueChange={(value) => {
+                    setSelectedGroupId(value === 'null' ? null : Number(value));
+                  }}
+                  items={groupItems}
+                  placeholder="지급할 잼 그룹을 설정해주세요"
+                  triggerClassName="h-[44px] rounded-[4px] border border-[#E3E7EC] bg-white px-3 py-2 text-sm leading-[1.4] text-[#141414] shadow-none focus:ring-0"
+                />
+              </div>
             )}
 
-            {/* 날짜 선택 필드 (퇴사 예정 또는 퇴사) */}
-            {needsDatePicker && (
+            {/* 퇴사일 선택 필드 - 재직중 -> 퇴사로 변경할 때만 표시 */}
+            {needsResignationDatePicker && (
               <div className="space-y-2">
-                <Label className="text-sm font-medium text-gray-900">
-                  {selectedStatus === EmployeeStatus.LEAVING ? '퇴사 예정일' : '퇴사일'}*
-                </Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        'w-full justify-start text-left font-normal',
-                        !resignationDate && 'text-muted-foreground'
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {resignationDate ? (
-                        format(resignationDate, 'yyyy.MM.dd')
-                      ) : (
-                        <span>날짜를 선택해주세요</span>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={resignationDate}
-                      onSelect={setResignationDate}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
+                <p className="text-sm font-semibold leading-[1.4] text-[#141414]">
+                  퇴사일*
+                </p>
 
-                {/* 날짜 유효성 검사 메시지 */}
-                {dateValidation && (
-                  <div
+                {/* 날짜 입력 필드 */}
+                <div className="relative">
+                  <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#6C7885] pointer-events-none" />
+                  <Input
+                    value={dateInputValue}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setDateInputValue(value);
+
+                      if (!value) {
+                        setResignationDate(undefined);
+                        setDateInputError('');
+                        return;
+                      }
+
+                      // yyyy.MM.dd 형식으로 파싱 시도 (완전한 날짜일 때만)
+                      if (value.length === 10) {
+                        try {
+                          const parsed = parse(value, 'yyyy.MM.dd', new Date());
+                          if (!isNaN(parsed.getTime())) {
+                            setResignationDate(parsed);
+                            setDateInputError('');
+                          } else {
+                            setResignationDate(undefined);
+                            setDateInputError('유효하지 않은 날짜입니다.');
+                          }
+                        } catch (error) {
+                          setResignationDate(undefined);
+                          setDateInputError('유효하지 않은 날짜입니다.');
+                        }
+                      } else if (value.length > 10) {
+                        setDateInputError('날짜 형식이 올바르지 않습니다. (년도.월.일)');
+                      } else {
+                        setDateInputError('');
+                      }
+                    }}
+                    placeholder="년도.월.일"
                     className={cn(
-                      'flex items-center gap-2 text-sm',
-                      dateValidation.isValid ? 'text-green-600' : 'text-red-600'
+                      "h-[44px] rounded-[4px] border bg-white pl-10 pr-10 py-2 text-sm leading-[1.4] text-[#141414] placeholder:text-[#6C7885] focus-visible:ring-0",
+                      dateInputError
+                        ? "border-[#F04438] focus-visible:border-[#F04438]"
+                        : "border-[#E3E7EC] focus-visible:border-[#2E3A49]"
                     )}
-                  >
-                    {dateValidation.isValid ? (
-                      <CheckCircle2 className="h-4 w-4" />
-                    ) : (
-                      <AlertCircle className="h-4 w-4" />
-                    )}
-                    <span>{dateValidation.message}</span>
-                  </div>
+                  />
+                  {dateInputValue && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setResignationDate(undefined);
+                        setDateInputValue('');
+                        setDateInputError('');
+                      }}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 flex items-center justify-center text-[#6C7885] hover:text-[#141414] transition-colors"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+                {dateInputError && (
+                  <p className="text-[13px] leading-[1.4] text-[#F04438] mt-1">
+                    {dateInputError}
+                  </p>
                 )}
+
+                {/* 캘린더 */}
+                <div className="border border-[#E3E7EC] rounded-[4px] bg-white w-full overflow-hidden">
+                  <Calendar
+                    mode="single"
+                    selected={resignationDate}
+                    onSelect={(date: Date | undefined) => {
+                      setResignationDate(date);
+                      setDateInputValue(date ? format(date, 'yyyy.MM.dd') : '');
+                      setDateInputError('');
+                    }}
+                    className="w-full p-0"
+                    classNames={{
+                      months: 'flex w-full',
+                      month: 'w-full space-y-3 p-3',
+                      table: 'w-full border-collapse',
+                      head_row: 'flex w-full',
+                      head_cell: 'text-[#6C7885] rounded-md flex-1 font-normal text-[13px] leading-[1.4] text-center',
+                      row: 'flex w-full mt-1.5',
+                      cell: 'flex-1 text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20',
+                      day: cn(
+                        'h-8 w-full p-0 font-normal text-[13px] leading-[1.4] hover:bg-[#F4F4F4] rounded-md',
+                        'aria-selected:bg-[#141414] aria-selected:text-white aria-selected:hover:bg-[#141414] aria-selected:hover:text-white'
+                      ),
+                      day_today: 'bg-[#F4F4F4] text-[#141414] font-semibold',
+                      day_outside: 'text-[#AEB5BD] opacity-50',
+                      day_disabled: 'text-[#AEB5BD] opacity-30',
+                      day_hidden: 'invisible',
+                      caption: 'flex justify-center pt-1 relative items-center mb-2',
+                      caption_label: 'text-sm font-medium',
+                      nav: 'space-x-1 flex items-center',
+                      nav_button: 'h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100',
+                      nav_button_previous: 'absolute left-1',
+                      nav_button_next: 'absolute right-1',
+                    }}
+                  />
+                </div>
+
+                {/* 경고 문구 */}
+                <div className="flex items-start gap-2 text-[13px] leading-[1.4] text-[#6C7885]">
+                  <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0 text-[#F97066]" />
+                  <span>퇴사일 이후 해당 사원은 서비스 사용이 불가합니다.</span>
+                </div>
               </div>
             )}
           </div>
 
-          <div className="flex gap-3 mt-6">
+          <div className="flex gap-4 mt-4">
             <Button
               variant="outline"
-              className="flex-1 h-11 border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-700"
+              className="flex-1 h-[44px] rounded-[4px] border border-[#CDD3DB] bg-white px-6 py-3 text-sm font-semibold leading-[1.4] text-[#6C7885] hover:bg-white"
               onClick={onClose}
-              disabled={isSubmitting}
+              disabled={isMutationPending}
             >
               취소
             </Button>
             <Button
-              className="flex-1 h-11 bg-[#282821] text-white hover:bg-[#282821]/90"
+              className={cn(
+                'flex-1 h-[44px] rounded-[4px] px-6 py-3 text-sm font-semibold leading-[1.4]',
+                canSave && !isMutationPending
+                  ? 'bg-[#141414] text-white hover:bg-[#141414]/90'
+                  : 'bg-[#D9D9D9] text-[#6C7885] hover:bg-[#D9D9D9]'
+              )}
               onClick={handleSaveClick}
-              disabled={isSubmitting || !canSave}
+              disabled={isMutationPending || !canSave}
             >
-              확인
+              {isMutationPending ? '저장 중...' : '저장'}
             </Button>
           </div>
         </DialogContent>
       </Dialog>
-
-      {/* 확인 다이얼로그 */}
-      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{getConfirmDialogContent().title}</AlertDialogTitle>
-            <AlertDialogDescription>{getConfirmDialogContent().description}</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>취소</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleConfirm}
-              className="bg-[#282821] text-white hover:bg-[#282821]/90"
-            >
-              확인
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   );
 }

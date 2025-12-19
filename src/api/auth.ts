@@ -1,4 +1,4 @@
-import { graphqlClient, clearAuthToken } from '@/lib/graphql-client';
+import { graphqlClient, clearAuthToken, setAuthToken } from '@/lib/graphql-client';
 import { LOGIN_MUTATION } from '@/graphql/mutations/auth';
 import { LoginResponse } from '@/graphql/types';
 import { setCompanyId, clearCompanyId } from '@/lib/company';
@@ -19,15 +19,20 @@ export const auth = {
         { email, password }
       );
 
-      const { token, user } = data.login;
+      const { token, companyId, user } = data.login;
+
+      console.log('Login successful:', data.login);
 
       // 토큰과 사용자 정보를 로컬 스토리지에 저장
       localStorage.setItem('token', token);
       localStorage.setItem('isAuthenticated', 'true');
 
+      // GraphQL 클라이언트에 인증 토큰 설정
+      setAuthToken(token);
+
       // companyId 저장
-      if (user.companyId) {
-        setCompanyId(user.companyId);
+      if (companyId) {
+        setCompanyId(companyId);
       }
 
       // 기존 User 인터페이스 형식으로 변환하여 저장

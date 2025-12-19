@@ -7,11 +7,13 @@ export const GET_EMPLOYEE_LIST = gql`
   query GetEmployeeList($companyId: Int!) {
     getEmployeeList(companyId: $companyId) {
       employees {
+        id
         employeeNumber
         name
         phoneNumber
         email
         joinDate
+        leaveDate
         status
         jamInfo {
           totalJams

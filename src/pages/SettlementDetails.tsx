@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Employee } from '@/api/entities';
+import { Employee, EmployeeStatus } from '@/api/entities';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
@@ -21,7 +21,7 @@ export default function SettlementDetailsPage() {
     return employees.map((emp, index) => {
       // Mock logic for status based on employment_status or random for demo if all are active
       let status = 'existing';
-      if (emp.employment_status === 'resigning' || emp.employment_status === 'inactive') {
+      if (emp.employment_status === EmployeeStatus.LEAVING || emp.employment_status === EmployeeStatus.LEFT) {
         status = 'resigned';
       } else if (emp.join_date && new Date(emp.join_date) > new Date('2025-12-01')) {
         // Arbitrary date for "new"

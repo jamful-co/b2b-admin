@@ -22,6 +22,10 @@ export interface LoginResponse {
    * 사용자 정보
    */
   user: User;
+  /**
+   * 회사 ID
+   */
+  companyId: number;  
 }
 
 /**
@@ -304,9 +308,13 @@ export interface EmployeeGroup {
 }
 
 /**
- * 임직원 정보
+ * 임직원 정보 (GraphQL API 응답)
  */
 export interface EmployeeData {
+  /**
+   * 임직원 ID (UUID)
+   */
+  id: string;
   /**
    * 사번
    */
@@ -328,6 +336,10 @@ export interface EmployeeData {
    */
   joinDate: string;
   /**
+   * 퇴사일
+   */
+  leaveDate?: string;
+  /**
    * 상태
    */
   status: string;
@@ -343,6 +355,65 @@ export interface EmployeeData {
    * 그룹 정보
    */
   group: EmployeeGroup;
+}
+
+/**
+ * 테이블 표시용 임직원 정보
+ * GraphQL EmployeeData를 테이블 컴포넌트에서 사용하기 쉬운 형태로 변환한 타입
+ */
+export interface EmployeeTableData {
+  /**
+   * 임직원 ID (UUID)
+   */
+  id: string;
+  /**
+   * 사번
+   */
+  employeeNumber: string;
+  /**
+   * 이름
+   */
+  name: string;
+  /**
+   * 전화번호
+   */
+  phoneNumber: string;
+  /**
+   * 이메일
+   */
+  email: string;
+  /**
+   * 입사일
+   */
+  joinDate: string;
+  /**
+   * 퇴사일
+   */
+  leaveDate?: string;
+  /**
+   * 멤버십 개시일
+   */
+  membershipStartDate?: string;
+  /**
+   * 재직상태
+   */
+  status: string;
+  /**
+   * 그룹명
+   */
+  groupName: string;
+  /**
+   * 그룹 ID
+   */
+  groupId?: number;
+  /**
+   * 잼 잔여량
+   */
+  balanceJams: number;
+  /**
+   * 잼 총량
+   */
+  totalJams: number;
 }
 
 /**
@@ -366,3 +437,301 @@ export interface GetEmployeeListVariables {
   companyId: number;
 }
 
+// ============================================
+// 임직원 상태 변경 관련 타입 정의
+// ============================================
+
+/**
+ * 임직원 상태 액션
+ */
+export enum EmployeeStatusAction {
+  /** 승인 */
+  APPROVE = 'APPROVE',
+  /** 거절 */
+  REJECT = 'REJECT',
+  /** 퇴사 예정 */
+  SCHEDULE_LEAVE = 'SCHEDULE_LEAVE',
+  /** 퇴사 처리 */
+  LEAVE = 'LEAVE',
+}
+
+/**
+ * 승인자 유형
+ */
+export enum ApproverType {
+  /** 관리자 */
+  ADMIN = 'COMPANY_ADMIN',
+  /** 시스템 */
+  SYSTEM = 'SYSTEM',
+}
+
+/**
+ * 임직원 상태 변경 입력
+ */
+export interface UpdateEmployeeStatusInput {
+  /**
+   * 회사 ID
+   */
+  companyId: number;  
+  /**
+   * 임직원 ID (UUID)
+   */
+  id: string;
+  /**
+   * 수행할 액션
+   */
+  action: EmployeeStatusAction;
+  /**
+   * 승인자 유형
+   */
+  approverType: ApproverType;
+  /**
+   * 승인자 ID
+   */
+  approverId?: number;
+  /**
+   * 거절 사유 (REJECT 액션 시 필수)
+   */
+  rejectionReason?: string;
+  /**
+   * 퇴사 날짜 (SCHEDULE_LEAVE, LEAVE 액션 시 필수, YYYY-MM-DD)
+   */
+  leaveDate?: string;
+  /**
+   * 그룹 ID (APPROVE 시 함께 그룹 할당)
+   */
+  employeeGroupId?: number;
+}
+
+/**
+ * 임직원 상태 변경 응답
+ */
+export interface UpdateEmployeeStatusResponse {
+  /**
+   * 성공 여부
+   */
+  success: boolean;
+  /**
+   * 메시지
+   */
+  message: string;
+  /**
+   * 임직원 ID
+   */
+  employeeId: string;
+}
+
+/**
+ * 임직원 상태 변경 변수
+ */
+export interface UpdateEmployeeStatusVariables {
+  input: UpdateEmployeeStatusInput;
+}
+
+// ============================================
+// 임직원 그룹 관련 타입 정의
+// ============================================
+
+/**
+ * 임직원 그룹 데이터
+ */
+export interface EmployeeGroupData {
+  /**
+   * 그룹 ID
+   */
+  employeeGroupId: number;
+  /**
+   * 회사 ID
+   */
+  companyId: number;
+  /**
+   * 그룹명
+   */
+  name: string;
+  /**
+   * 활성화 여부
+   */
+  isActive: boolean;
+  /**
+   * 월간 지급 크레딧
+   */
+  credits: number;
+  /**
+   * 크레딧 갱신일 (0은 월말)
+   */
+  renewDate: number;
+  /**
+   * 크레딧 이월 비율 (0-100)
+   */
+  rolloverPercentage: number;
+  /**
+   * 그룹 인원 수
+   */
+  employeeCount: number;
+  /**
+   * 생성일
+   */
+  createdAt: string;
+  /**
+   * 수정일
+   */
+  updatedAt: string;
+}
+
+/**
+ * 임직원 그룹 생성 입력
+ */
+export interface CreateEmployeeGroupInput {
+  /**
+   * 회사 ID
+   */
+  companyId: number;
+  /**
+   * 그룹명
+   */
+  name: string;
+  /**
+   * 월간 지급 크레딧
+   */
+  credits: number;
+  /**
+   * 크레딧 갱신일 (0은 월말)
+   */
+  renewDate: number;
+  /**
+   * 크레딧 이월 비율 (0-100)
+   */
+  rolloverPercentage?: number;
+}
+
+/**
+ * 임직원 그룹 생성 변수
+ */
+export interface CreateEmployeeGroupVariables {
+  input: CreateEmployeeGroupInput;
+}
+
+/**
+ * 임직원 그룹 수정 입력
+ */
+export interface UpdateEmployeeGroupInput {
+  /**
+   * 그룹 ID
+   */
+  employeeGroupId: number;
+  /**
+   * 회사 ID
+   */
+  companyId: number;
+  /**
+   * 그룹명
+   */
+  name?: string;
+  /**
+   * 월간 지급 크레딧
+   */
+  credits?: number;
+  /**
+   * 크레딧 갱신일 (0은 월말)
+   */
+  renewDate?: number;
+  /**
+   * 크레딧 이월 비율 (0-100)
+   */
+  rolloverPercentage?: number;
+  /**
+   * 활성화 여부
+   */
+  isActive?: boolean;
+}
+
+/**
+ * 임직원 그룹 수정 변수
+ */
+export interface UpdateEmployeeGroupVariables {
+  input: UpdateEmployeeGroupInput;
+}
+
+/**
+ * 임직원을 그룹에 할당 입력
+ */
+export interface AssignEmployeeToGroupInput {
+  /**
+   * 회사 ID
+   */
+  companyId: number;
+  /**
+   * 임직원 ID (B2bEmployee.id)
+   */
+  employeeId: string;
+  /**
+   * 그룹 ID
+   */
+  employeeGroupId: number;
+}
+
+/**
+ * 임직원을 그룹에 할당 변수
+ */
+export interface AssignEmployeeToGroupVariables {
+  input: AssignEmployeeToGroupInput;
+}
+
+/**
+ * 임직원 그룹 해제 입력
+ */
+export interface UnassignEmployeeFromGroupInput {
+  /**
+   * 회사 ID
+   */
+  companyId: number;
+  /**
+   * 임직원 ID (B2bEmployee.id)
+   */
+  employeeId: string;
+}
+
+/**
+ * 임직원 그룹 해제 변수
+ */
+export interface UnassignEmployeeFromGroupVariables {
+  input: UnassignEmployeeFromGroupInput;
+}
+
+/**
+ * 임직원 그룹 삭제 입력
+ */
+export interface DeleteEmployeeGroupInput {
+  /**
+   * 그룹 ID
+   */
+  employeeGroupId: number;
+}
+
+/**
+ * 임직원 그룹 삭제 변수
+ */
+export interface DeleteEmployeeGroupVariables {
+  input: DeleteEmployeeGroupInput;
+}
+
+/**
+ * 임직원 그룹 목록 응답
+ */
+export interface EmployeeGroupsResponse {
+  /**
+   * 그룹 목록
+   */
+  groups: EmployeeGroupData[];
+  /**
+   * 총 개수
+   */
+  totalCount: number;
+}
+
+/**
+ * 임직원 그룹 목록 조회 변수
+ */
+export interface GetEmployeeGroupsVariables {
+  companyId: number;
+}

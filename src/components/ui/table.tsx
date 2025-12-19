@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils';
+import { forwardRef } from 'react';
 
 interface TableProps extends React.HTMLAttributes<HTMLTableElement> {
   className?: string;
@@ -16,20 +17,24 @@ interface ScrollableTableContainerProps extends React.HTMLAttributes<HTMLDivElem
   bordered?: boolean;
 }
 
-const ScrollableTableContainer = ({ className, bordered = true, children, ...props }: ScrollableTableContainerProps) => (
-  <div
-    className={cn(
-      'flex-1 flex flex-col overflow-hidden',
-      bordered && 'border border-border-default rounded-lg',
-      className
-    )}
-    {...props}
-  >
-    <div className="flex-1 overflow-x-auto overflow-y-auto custom-scrollbar">
-      {children}
+const ScrollableTableContainer = forwardRef<HTMLDivElement, ScrollableTableContainerProps>(
+  ({ className, bordered = true, children, ...props }, ref) => (
+    <div
+      className={cn(
+        'flex-1 flex flex-col overflow-hidden',
+        bordered && 'border border-border-default rounded-lg',
+        className
+      )}
+      {...props}
+    >
+      <div ref={ref} className="flex-1 overflow-x-auto overflow-y-auto custom-scrollbar">
+        {children}
+      </div>
     </div>
-  </div>
+  )
 );
+
+ScrollableTableContainer.displayName = 'ScrollableTableContainer';
 
 interface TableHeaderProps extends React.HTMLAttributes<HTMLTableSectionElement> {
   className?: string;
@@ -79,7 +84,7 @@ interface TableHeadProps extends React.ThHTMLAttributes<HTMLTableCellElement> {
 const TableHead = ({ className, ...props }: TableHeadProps) => (
   <th
     className={cn(
-      'h-10 px-2 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]',
+      'h-12 px-3 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]',
       className
     )}
     {...props}
@@ -93,7 +98,7 @@ interface TableCellProps extends React.TdHTMLAttributes<HTMLTableCellElement> {
 const TableCell = ({ className, ...props }: TableCellProps) => (
   <td
     className={cn(
-      'p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]',
+      'h-[54px] px-3 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]',
       className
     )}
     {...props}

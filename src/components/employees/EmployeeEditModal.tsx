@@ -15,7 +15,7 @@ import { X } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { JamGroup } from '@/api/entities';
 
-export default function EmployeeEditModal({ isOpen, onClose, onSave, employee }) {
+export default function EmployeeEditModal({ isOpen, onClose, employee }) {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -48,10 +48,8 @@ export default function EmployeeEditModal({ isOpen, onClose, onSave, employee })
   };
 
   const handleSave = () => {
-    onSave({
-      ...employee,
-      ...formData,
-    });
+    // TODO: API 호출 추가 필요
+    console.log('Save employee:', { ...employee, ...formData });
     onClose();
   };
 

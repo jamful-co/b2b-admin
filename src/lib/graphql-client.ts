@@ -1,7 +1,7 @@
 import { GraphQLClient } from 'graphql-request';
 
 // GraphQL 엔드포인트 설정
-const GRAPHQL_ENDPOINT = import.meta.env.VITE_GRAPHQL_ENDPOINT || 'http://localhost:3335/graphql';
+const GRAPHQL_ENDPOINT = import.meta.env.VITE_GRAPHQL_ENDPOINT || 'http://localhost:3300/graphql';
 
 // GraphQL 클라이언트 인스턴스 생성
 export const graphqlClient = new GraphQLClient(GRAPHQL_ENDPOINT, {
