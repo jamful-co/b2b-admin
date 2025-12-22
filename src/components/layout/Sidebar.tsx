@@ -1,26 +1,32 @@
-import React from 'react';
+import { useMemo } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
-import { Home, Users, List, Receipt, BarChart3 } from 'lucide-react';
+import { createPageUrl, getLogoUrlFromSubdomain } from '@/utils';
+import { Home, Users, List, Receipt } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { hasBothDashboardTypes, getDefaultDashboardType } from '@/lib/dashboard';
 
 export default function Sidebar() {
   const location = useLocation();
   const currentPath = location.pathname;
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const currentType = searchParams.get('dashboard_type') || 'subscription';
+  const defaultDashboardType = getDefaultDashboardType();
+  const currentType = searchParams.get('dashboard_type') || defaultDashboardType;
+  const logoImageUrl = useMemo(() => getLogoUrlFromSubdomain(), []);
+
+  // 사용자가 두 가지 대시보드 타입을 모두 지원하는지 확인
+  const showDashboardSwitcher = hasBothDashboardTypes();
 
   const menuItems = [
     { label: '홈', icon: Home, path: '/dashboard' },
     { label: '임직원 관리', icon: Users, path: '/employees' },
     { label: '그룹 관리', icon: List, path: '/groups' },
-    { label: '정산 관리', icon: Receipt, path: '/settlements' },
+    // { label: '정산 관리', icon: Receipt, path: '/settlements' },
   ];
 
-  const handleTypeToggle = (checked) => {
+  const handleTypeToggle = (checked: boolean) => {
     const newType = checked ? 'recharge' : 'subscription';
     const params = new URLSearchParams(searchParams);
     params.set('dashboard_type', newType);
@@ -43,10 +49,22 @@ export default function Sidebar() {
       }}
     >
       <div className="mb-4">
-        <div className="flex items-center gap-2 text-indigo-600 font-bold text-xl">
-          <BarChart3 className="w-6 h-6" />
-          <span className="text-gray-900">ByteDance</span>
-        </div>
+        <img
+          src={logoImageUrl}
+          alt="Logo"
+          className="max-w-[160px] h-auto object-contain"
+          onError={(e) => {
+            // 로고 이미지 로드 실패 시 텍스트로 대체
+            const target = e.target as HTMLImageElement;
+            target.style.display = 'none';
+            if (!target.parentElement?.querySelector('.logo-text')) {
+              const textDiv = document.createElement('div');
+              textDiv.className = 'logo-text text-gray-900 font-bold text-xl';
+              textDiv.textContent = 'Logo';
+              target.parentElement?.appendChild(textDiv);
+            }
+          }}
+        />
       </div>
 
       <nav className="flex-1 flex flex-col gap-2">
@@ -94,21 +112,24 @@ export default function Sidebar() {
         })}
       </nav>
 
-      <div className="p-6 border-t border-gray-100">
-        <div className="flex items-center justify-between mb-2">
-          <Label htmlFor="dashboard-mode" className="text-xs font-medium text-gray-500">
-            {currentType === 'subscription' ? '구독형' : '충전형'}
-          </Label>
-          <Switch
-            id="dashboard-mode"
-            checked={currentType === 'recharge'}
-            onCheckedChange={handleTypeToggle}
-          />
+      {/* Dashboard switcher - only show when user has both dashboard types */}
+      {showDashboardSwitcher && (
+        <div className="p-6 border-t border-gray-100">
+          <div className="flex items-center justify-between mb-2">
+            <Label htmlFor="dashboard-mode" className="text-xs font-medium text-gray-500">
+              {currentType === 'subscription' ? '구독형' : '충전형'}
+            </Label>
+            <Switch
+              id="dashboard-mode"
+              checked={currentType === 'recharge'}
+              onCheckedChange={handleTypeToggle}
+            />
+          </div>
+          <p className="text-[10px] text-gray-400">
+            {currentType === 'subscription' ? '구독형 멤버십 이용중' : '충전형 멤버십 이용중'}
+          </p>
         </div>
-        <p className="text-[10px] text-gray-400">
-          {currentType === 'subscription' ? '구독형 멤버십 이용중' : '충전형 멤버십 이용중'}
-        </p>
-      </div>
+      )}
     </div>
   );
 }

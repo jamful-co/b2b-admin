@@ -1,14 +1,19 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { JamGroup } from '@/api/entities';
-import { useQuery } from '@tanstack/react-query';
+import JamIcon from '@/assets/icons/jam.svg?react';
+import { EmployeeGroupData } from '@/graphql/types';
 
-export default function JamGroupList() {
-  const { data: groups } = useQuery({
-    queryKey: ['jamGroups'],
-    queryFn: () => JamGroup.list(),
-    initialData: [],
-  });
+interface JamGroupListProps {
+  groups?: EmployeeGroupData[];
+}
+
+const JamGroupList: React.FC<JamGroupListProps> = ({ groups = [] }) => {
+  // 활성 그룹만 필터링하고 금액 내림차순으로 정렬
+  const activeGroupsSorted = React.useMemo(() => {
+    return groups
+      .filter((group) => group.isActive)
+      .sort((a, b) => b.credits - a.credits);
+  }, [groups]);
 
   return (
     <Card>
@@ -17,15 +22,13 @@ export default function JamGroupList() {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {groups.map((group) => (
-            <div key={group.id} className="flex items-center justify-between py-1">
+          {activeGroupsSorted.map((group) => (
+            <div key={group.employeeGroupId} className="flex items-center justify-between py-1">
               <span className="text-sm text-gray-500 font-medium">{group.name}</span>
               <div className="flex items-center gap-1.5">
-                <div className="flex items-center justify-center w-5 h-5 rounded-full bg-black text-yellow-400 font-bold text-xs">
-                  J
-                </div>
+                <JamIcon className="w-5 h-5" />
                 <span className="text-xl font-bold text-gray-900">
-                  {group.amount.toLocaleString()}
+                  {group.credits.toLocaleString()}
                 </span>
               </div>
             </div>
@@ -34,4 +37,6 @@ export default function JamGroupList() {
       </CardContent>
     </Card>
   );
-}
+};
+
+export default JamGroupList;

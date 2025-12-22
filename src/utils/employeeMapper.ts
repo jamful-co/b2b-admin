@@ -26,6 +26,7 @@ export function mapEmployeeToTableData(employee: EmployeeData): EmployeeTableDat
     groupId: employee.group?.groupId,
     balanceJams: employee.jamInfo?.balanceJams || 0,
     totalJams: employee.jamInfo?.totalJams || 0,
+    userId: employee.userId,
   };
 }
 

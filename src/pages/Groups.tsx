@@ -102,6 +102,7 @@ export default function GroupsPage() {
     deleteGroupMutation.mutate(
       {
         input: {
+          companyId,
           employeeGroupId: deletingGroup.employeeGroupId,
         },
       },

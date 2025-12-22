@@ -268,14 +268,14 @@ export default function EmployeeStatusChangeModal({
       return [EmployeeStatus.ACTIVE, EmployeeStatus.LEAVING, EmployeeStatus.LEFT];
     }
 
-    // 승인 대기 -> 재직중, 승인 거절
+    // 승인 대기 -> 승인 대기, 재직중, 승인 거절
     if (currentStatus === EmployeeStatus.PENDING) {
-      return [EmployeeStatus.ACTIVE, EmployeeStatus.REJECTED];
+      return [EmployeeStatus.PENDING, EmployeeStatus.ACTIVE, EmployeeStatus.REJECTED];
     }
 
-    // 승인 거절 -> 재직중
+    // 승인 거절 -> 승인 거절, 재직중
     if (currentStatus === EmployeeStatus.REJECTED) {
-      return [EmployeeStatus.ACTIVE];
+      return [EmployeeStatus.REJECTED, EmployeeStatus.ACTIVE];
     }
 
     // 퇴사 예정 -> 퇴사 예정, 퇴사 (날짜 변경 가능)

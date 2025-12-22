@@ -19,7 +19,7 @@ export const auth = {
         { email, password }
       );
 
-      const { token, companyId, user } = data.login;
+      const { token, companyId, user, supportTypes } = data.login;
 
       console.log('Login successful:', data.login);
 
@@ -33,6 +33,11 @@ export const auth = {
       // companyId 저장
       if (companyId) {
         setCompanyId(companyId);
+      }
+
+      // supportTypes 저장
+      if (supportTypes && supportTypes.length > 0) {
+        localStorage.setItem('supportTypes', JSON.stringify(supportTypes));
       }
 
       // 기존 User 인터페이스 형식으로 변환하여 저장
@@ -55,6 +60,7 @@ export const auth = {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('supportTypes');
 
     // GraphQL 클라이언트에서 인증 토큰 제거
     clearAuthToken();

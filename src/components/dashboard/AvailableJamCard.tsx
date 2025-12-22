@@ -6,6 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { useB2bCreditSummary } from '@/hooks/useB2bCreditSummary';
 import { getCompanyId } from '@/lib/company';
 import { format } from 'date-fns';
+import JamIcon from '@/assets/icons/jam.svg?react';
 
 export default function AvailableJamCard() {
   const companyId = getCompanyId();
@@ -65,9 +66,7 @@ export default function AvailableJamCard() {
           <div className="flex flex-col gap-4">
             <p className="text-[14px] font-semibold leading-[1.4] text-[#525E6A]">사용 가능한 잼</p>
             <div className="flex items-center gap-1">
-              <div className="flex items-center justify-center size-6 rounded-full bg-[#141414] text-[#FEE666] font-bold text-[14px] leading-[1.4]">
-                J
-              </div>
+              <JamIcon className="w-6 h-6" />
               <p className="text-[22px] font-bold leading-[1.4] text-[#222]">로딩 중...</p>
             </div>
           </div>
@@ -82,9 +81,7 @@ export default function AvailableJamCard() {
         <div className="flex flex-col gap-4">
           <p className="text-[14px] font-semibold leading-[1.4] text-[#525E6A]">사용 가능한 잼</p>
           <div className="flex items-center gap-1">
-            <div className="flex items-center justify-center size-6 rounded-full bg-[#141414] text-[#FEE666] font-bold text-[14px] leading-[1.4]">
-              J
-            </div>
+            <JamIcon className="w-6 h-6" />
             <p className="text-[22px] font-bold leading-[1.4] text-[#222]">{current.toLocaleString()}</p>
             <p className="text-[18px] font-semibold leading-[1.4] text-[#6C7885]">/ {total.toLocaleString()}</p>
           </div>

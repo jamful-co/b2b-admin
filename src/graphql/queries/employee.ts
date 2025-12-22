@@ -26,6 +26,7 @@ export const GET_EMPLOYEE_LIST = gql`
           groupId
           groupName
         }
+        userId
       }
       totalCount
     }

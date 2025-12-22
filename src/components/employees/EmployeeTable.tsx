@@ -18,16 +18,17 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
-import { ArrowUpDown, ArrowUp, ArrowDown, Search, Pencil } from 'lucide-react';
+import { ArrowUpDown, ArrowUp, ArrowDown, Pencil } from 'lucide-react';
 import { TablePagination } from '@/components/ui/table-pagination';
 import { format } from 'date-fns';
 import JamAllocationModal from './JamAllocationModal';
 import EmployeeEditModal from './EmployeeEditModal';
 import EmployeeStatusChangeModal from './EmployeeStatusChangeModal';
 import EmployeeGroupChangeModal from './EmployeeGroupChangeModal';
-import { toast } from 'sonner';
 import { EmployeeStatus } from '@/api/entities';
 import { type EmployeeTableData } from '@/graphql/types';
+import { useB2bCreditSummary } from '@/hooks/useB2bCreditSummary';
+import { getCompanyId } from '@/lib/company';
 
 interface EmployeeTableProps {
   data: EmployeeTableData[];
@@ -77,6 +78,10 @@ const employeeStatusLabel: Record<EmployeeStatus, string> = {
 };
 
 export default function EmployeeTable({ data }: EmployeeTableProps) {
+  // Get company ID and fetch credit summary
+  const companyId = getCompanyId();
+  const { data: creditSummary } = useB2bCreditSummary(companyId);
+
   // TanStack Table State
   const [sorting, setSorting] = useState<SortingState>([{ id: 'name', desc: false }]);
   const [globalFilter, setGlobalFilter] = useState('');
@@ -313,6 +318,7 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
     globalFilterFn: (row, _columnId, filterValue) => {
       const search = filterValue.toLowerCase();
       return (
+        (row.original.name || '').toLowerCase().includes(search) ||
         row.original.employeeNumber.toLowerCase().includes(search) ||
         (row.original.phoneNumber || '').toLowerCase().includes(search) ||
         row.original.email.toLowerCase().includes(search)
@@ -326,15 +332,9 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
     () =>
       table
         .getSelectedRowModel()
-        .rows.map((r) => ({ id: r.original.id, name: r.original.name })),
+        .rows.map((r) => ({ id: r.original.userId, name: r.original.name })),
     [table, rowSelection]
   );
-
-  // Handlers
-  const handleJamAllocation = (amount: number, expiryDate: string) => {
-    toast.success(`${selectedRowCount}명의 직원에게 각각 ${amount}잼이 할당되었습니다. (만료일: ${expiryDate})`);
-    setRowSelection({});
-  };
 
   // 페이지네이션 정보
   const pageCount = table.getPageCount();
@@ -501,9 +501,11 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
 
       <JamAllocationModal
         isOpen={isJamModalOpen}
-        onClose={() => setIsJamModalOpen(false)}
-        onConfirm={handleJamAllocation}
-        availableJam={400} // Mocked value as per requirement
+        onClose={() => {
+          setIsJamModalOpen(false);
+          setRowSelection({});
+        }}
+        credits={creditSummary?.credits || []}
         targets={selectedEmployees}
       />
 

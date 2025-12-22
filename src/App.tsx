@@ -1,6 +1,7 @@
 import './App.css';
 import Pages from '@/pages/index.jsx';
 import { Toaster } from '@/components/ui/toaster';
+import { Toaster as SonnerToaster } from '@/components/ui/sonner';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { initializeAuthToken } from '@/lib/graphql-client';
@@ -25,6 +26,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <Pages />
       <Toaster />
+      <SonnerToaster position="top-center" />
     </QueryClientProvider>
   );
 }

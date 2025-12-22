@@ -12,6 +12,7 @@ export const LOGIN_MUTATION = gql`
         userId
         name
       }
+      supportTypes
     }
   }
 `;

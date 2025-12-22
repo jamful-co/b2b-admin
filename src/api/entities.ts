@@ -97,22 +97,22 @@ const mockStats: Stat[] = [
   {
     id: '4',
     type: 'total_participants',
-    label: '월 지급일',
-    value: '입직원별로 상이',
-    dashboard_type: 'recharge',
-  },
-  {
-    id: '5',
-    type: 'total_charged_jam',
     label: '총 참여 인원',
     value: '150명',
     dashboard_type: 'recharge',
   },
   {
-    id: '6',
-    type: 'payment_date',
+    id: '5',
+    type: 'total_charged_jam',
     label: '총 충전 잼',
     value: '150,000',
+    dashboard_type: 'recharge',
+  },
+  {
+    id: '6',
+    type: 'payment_date',
+    label: '월 지급일',
+    value: '입직원별로 상이',
     dashboard_type: 'recharge',
   },
 ];

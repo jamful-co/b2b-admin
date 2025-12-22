@@ -50,6 +50,11 @@ export const useLogin = () => {
       if (data.user.companyId) {
         setCompanyId(data.user.companyId);
       }
+
+      // supportTypes를 로컬 스토리지에 저장
+      if (data.supportTypes && data.supportTypes.length > 0) {
+        localStorage.setItem('supportTypes', JSON.stringify(data.supportTypes));
+      }
     },
   });
 };

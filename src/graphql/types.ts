@@ -25,7 +25,11 @@ export interface LoginResponse {
   /**
    * 회사 ID
    */
-  companyId: number;  
+  companyId: number;
+  /**
+   * 지원하는 멤버십 타입 목록
+   */
+  supportTypes: string[];
 }
 
 /**
@@ -355,6 +359,10 @@ export interface EmployeeData {
    * 그룹 정보
    */
   group: EmployeeGroup;
+  /**
+   * 유저 ID
+   */
+  userId?: number;
 }
 
 /**
@@ -414,6 +422,10 @@ export interface EmployeeTableData {
    * 잼 총량
    */
   totalJams: number;
+  /**
+   * 유저 ID
+   */
+  userId?: number;  
 }
 
 /**
@@ -703,6 +715,10 @@ export interface UnassignEmployeeFromGroupVariables {
  */
 export interface DeleteEmployeeGroupInput {
   /**
+   * 회사 ID
+   */
+  companyId: number;
+  /**
    * 그룹 ID
    */
   employeeGroupId: number;
@@ -734,4 +750,89 @@ export interface EmployeeGroupsResponse {
  */
 export interface GetEmployeeGroupsVariables {
   companyId: number;
+}
+
+// ============================================
+// 크레딧 할당 관련 타입 정의
+// ============================================
+
+/**
+ * 크레딧 할당 입력
+ */
+export interface AllocateCreditsInput {
+  /**
+   * 회사 ID
+   */
+  companyId: number;
+  /**
+   * 할당 대상 유저 ID 목록
+   */
+  userIds: number[];
+  /**
+   * 유저당 할당할 크레딧 수
+   */
+  creditsPerUser: number;
+  /**
+   * 크레딧 만료일
+   */
+  expireDate: Date;
+  /**
+   * 롤오버 비율 (0-100)
+   */
+  rolloverPercentage?: number;
+  /**
+   * 설명
+   */
+  description?: string;
+  /**
+   * 할당 실행자 유저 ID
+   */
+  initiatedByUserId?: number;
+}
+
+/**
+ * 개별 할당 결과
+ */
+export interface AllocationResultItem {
+  /**
+   * 유저 ID
+   */
+  userId: number;
+  /**
+   * 성공 여부
+   */
+  success: boolean;
+  /**
+   * 실패 사유
+   */
+  error?: string;
+}
+
+/**
+ * 크레딧 할당 출력
+ */
+export interface AllocateCreditsOutput {
+  /**
+   * 전체 성공 여부
+   */
+  success: boolean;
+  /**
+   * 성공 건수
+   */
+  successCount: number;
+  /**
+   * 실패 건수
+   */
+  failedCount: number;
+  /**
+   * 개별 결과 목록
+   */
+  results: AllocationResultItem[];
+}
+
+/**
+ * 크레딧 할당 변수
+ */
+export interface AllocateCreditsVariables {
+  input: AllocateCreditsInput;
 }

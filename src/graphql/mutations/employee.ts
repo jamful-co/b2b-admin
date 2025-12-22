@@ -133,3 +133,25 @@ export const DELETE_EMPLOYEE_GROUP = gql`
     deleteEmployeeGroup(input: $input)
   }
 `;
+
+// ============================================
+// 크레딧 할당 관련 Mutations
+// ============================================
+
+/**
+ * 크레딧 할당
+ */
+export const ALLOCATE_CREDITS = gql`
+  mutation AllocateCredits($input: AllocateCreditsInputDto!) {
+    allocateCredits(input: $input) {
+      success
+      successCount
+      failedCount
+      results {
+        userId
+        success
+        error
+      }
+    }
+  }
+`;
