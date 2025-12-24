@@ -11,12 +11,16 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { X, Loader2 } from 'lucide-react';
-import { CreateEmployeeGroupInput, EmployeeGroupData } from '@/graphql/types';
+import { CreateEmployeeGroupInput, EmployeeGroupData, RenewalPeriodType } from '@/graphql/types';
+import { SimpleSelect } from '@/components/ui/select';
+
+// Extended type for form submission that includes isActive for edit mode
+type GroupFormData = Partial<CreateEmployeeGroupInput> & { isActive?: boolean };
 
 interface GroupAddModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: Partial<CreateEmployeeGroupInput>) => void;
+  onSubmit: (data: GroupFormData) => void;
   isSubmitting: boolean;
   editingGroup?: EmployeeGroupData | null;
 }
@@ -26,6 +30,7 @@ export default function GroupAddModal({ isOpen, onClose, onSubmit, isSubmitting,
     name: '',
     credits: '',
     renewDate: '1',
+    renewalPeriodType: RenewalPeriodType.MONTHLY,
     isActive: true,
   });
 
@@ -36,10 +41,12 @@ export default function GroupAddModal({ isOpen, onClose, onSubmit, isSubmitting,
     if (isOpen) {
       if (editingGroup) {
         // 편집 모드: 기존 데이터로 초기화
+        console.log('Editing group data:', editingGroup);
         setFormData({
           name: editingGroup.name,
           credits: String(editingGroup.credits),
           renewDate: String(editingGroup.renewDate),
+          renewalPeriodType: editingGroup.renewalPeriodType || RenewalPeriodType.MONTHLY,
           isActive: editingGroup.isActive,
         });
       } else {
@@ -48,6 +55,7 @@ export default function GroupAddModal({ isOpen, onClose, onSubmit, isSubmitting,
           name: '',
           credits: '',
           renewDate: '1',
+          renewalPeriodType: RenewalPeriodType.MONTHLY,
           isActive: true,
         });
       }
@@ -81,29 +89,42 @@ export default function GroupAddModal({ isOpen, onClose, onSubmit, isSubmitting,
     return String(Math.min(31, Math.max(0, n)));
   };
 
-  // 날짜 입력값에서 "일" 제거하고 숫자만 추출
-  const extractDayNumber = (value: string) => {
-    return onlyDigits(value.replace('일', ''));
-  };
-
-  // 날짜 표시 형식 (숫자 -> "1일" 형식)
-  const formatDayDisplay = (value: string) => {
-    if (value === '' || value === '0') return '';
-    return `${value}일`;
+  // 갱신 주기에 따른 레이블 반환
+  const getRenewDateLabel = () => {
+    switch (formData.renewalPeriodType) {
+      case RenewalPeriodType.MONTHLY:
+        return '월 단위 충전일';
+      case RenewalPeriodType.QUARTERLY:
+        return '분기 단위 충전일';
+      case RenewalPeriodType.YEARLY:
+        return '연 단위 충전일';
+      default:
+        return '충전일';
+    }
   };
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (isValid) {
-      onSubmit({
+      const submitData = {
         name: formData.name,
         credits: Number(formData.credits),
         renewDate: Number(formData.renewDate),
         rolloverPercentage: 0,
+        renewalPeriodType: formData.renewalPeriodType,
         ...(isEditMode && { isActive: formData.isActive }),
-      });
+      };
+      console.log('Submitting group data:', submitData);
+      onSubmit(submitData);
     }
   };
+
+  // 갱신 주기 타입 옵션
+  const renewalPeriodTypeOptions = [
+    { value: RenewalPeriodType.MONTHLY, label: '월 단위' },
+    { value: RenewalPeriodType.QUARTERLY, label: '분기 단위' },
+    { value: RenewalPeriodType.YEARLY, label: '연 단위' },
+  ];
 
   const quickDays = ['1', '5', '10', '15', '25'];
 
@@ -162,20 +183,34 @@ export default function GroupAddModal({ isOpen, onClose, onSubmit, isSubmitting,
           </div>
 
           <div className="space-y-2">
+            <Label htmlFor="renewalPeriodType" className="text-[14px] font-semibold leading-[1.4] text-[#141414]">
+              갱신 주기*
+            </Label>
+            <div className="w-[378px] max-w-full">
+              <SimpleSelect
+                value={formData.renewalPeriodType}
+                onValueChange={(value) => setFormData({ ...formData, renewalPeriodType: value as RenewalPeriodType })}
+                items={renewalPeriodTypeOptions}
+                placeholder="갱신 주기를 선택하세요"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="renewDate" className="text-[14px] font-semibold leading-[1.4] text-[#141414]">
-              매월 충전일
+              {getRenewDateLabel()}*
             </Label>
             <div className="w-[378px] max-w-full space-y-2">
               <Input
                 id="renewDate"
                 inputMode="numeric"
-                value={formatDayDisplay(formData.renewDate)}
+                value={formData.renewDate}
                 onChange={(e) => {
-                  const dayValue = extractDayNumber(e.target.value);
-                  setFormData({ ...formData, renewDate: clampRechargeDay(dayValue) });
+                  const value = onlyDigits(e.target.value);
+                  setFormData({ ...formData, renewDate: clampRechargeDay(value) });
                 }}
                 className="h-[44px] rounded-[8px] border-[#E9EBED] text-[14px] leading-[1.4] placeholder:text-[#AEB5BD] focus-visible:border-[#2E3A49] focus-visible:ring-0"
-                placeholder=""
+                placeholder="예: 18"
               />
               <div className="flex flex-wrap gap-2">
                 {quickDays.map((day) => {

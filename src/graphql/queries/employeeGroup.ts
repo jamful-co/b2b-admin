@@ -13,6 +13,7 @@ export const GET_EMPLOYEE_GROUPS = gql`
         credits
         renewDate
         rolloverPercentage
+        renewalPeriodType
         createdAt
         employeeCount
       }

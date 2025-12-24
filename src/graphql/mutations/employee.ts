@@ -82,6 +82,7 @@ export const CREATE_EMPLOYEE_GROUP = gql`
       credits
       renewDate
       rolloverPercentage
+      renewalPeriodType
       createdAt
       updatedAt
     }
@@ -101,6 +102,7 @@ export const UPDATE_EMPLOYEE_GROUP = gql`
       credits
       renewDate
       rolloverPercentage
+      renewalPeriodType
       createdAt
       updatedAt
     }

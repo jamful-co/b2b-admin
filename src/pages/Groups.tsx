@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import PlusIcon from '@/assets/icons/plus.svg?react';
 import GroupAddModal from '@/components/groups/GroupAddModal';
@@ -8,6 +8,9 @@ import GroupTable from '@/components/groups/GroupTable';
 import { useEmployeeGroups, useCreateEmployeeGroup, useUpdateEmployeeGroup, useDeleteEmployeeGroup } from '@/hooks/useEmployeeGroup';
 import { getCompanyId } from '@/lib/company';
 import { EmployeeGroupData, CreateEmployeeGroupInput } from '@/graphql/types';
+
+// Extended type for form submission that includes isActive for edit mode
+type GroupFormData = Partial<CreateEmployeeGroupInput> & { isActive?: boolean };
 
 export default function GroupsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -28,20 +31,24 @@ export default function GroupsPage() {
   // Delete Group Mutation
   const deleteGroupMutation = useDeleteEmployeeGroup();
 
-  const handleSubmitGroup = (data: Partial<CreateEmployeeGroupInput>) => {
+  const handleSubmitGroup = (data: GroupFormData) => {
+    console.log('handleSubmitGroup received data:', data);
     if (editingGroup) {
       // 수정 모드
+      const updateInput = {
+        employeeGroupId: editingGroup.employeeGroupId,
+        companyId,
+        name: data.name,
+        credits: data.credits,
+        renewDate: data.renewDate,
+        rolloverPercentage: data.rolloverPercentage,
+        renewalPeriodType: data.renewalPeriodType,
+        isActive: data.isActive,
+      };
+      console.log('Updating group with input:', updateInput);
       updateGroupMutation.mutate(
         {
-          input: {
-            employeeGroupId: editingGroup.employeeGroupId,
-            companyId,
-            name: data.name,
-            credits: data.credits,
-            renewDate: data.renewDate,
-            rolloverPercentage: data.rolloverPercentage,
-            isActive: data.isActive,
-          },
+          input: updateInput,
         },
         {
           onSuccess: () => {
@@ -64,6 +71,7 @@ export default function GroupsPage() {
             credits: data.credits || 0,
             renewDate: data.renewDate || 1,
             rolloverPercentage: data.rolloverPercentage || 0,
+            renewalPeriodType: data.renewalPeriodType,
           },
         },
         {

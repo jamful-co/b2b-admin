@@ -11,7 +11,7 @@ import {
 import { TableCell, TableHead, TableRow, ScrollableTableContainer } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { ArrowUpDown, ArrowUp, ArrowDown, MoreHorizontal } from 'lucide-react';
-import { EmployeeGroupData } from '@/graphql/types';
+import { EmployeeGroupData, RenewalPeriodType } from '@/graphql/types';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,7 +48,8 @@ export default function GroupTable({ data, isLoading, onEdit, onDelete }: GroupT
     name: 150,
     memberCount: 150,
     credits: 180,
-    renewDate: 180,
+    renewalPeriodType: 150,
+    renewDate: 150,
     status: 150,
     actions: 50,
   };
@@ -56,14 +57,28 @@ export default function GroupTable({ data, isLoading, onEdit, onDelete }: GroupT
   // Format recharge date label
   const getRechargeDateLabel = (value: number) => {
     if (value === 0) {
-      return '매월 말일';
+      return '말일';
     }
-    return `매월 ${value}일`;
+    return `${value}일`;
   };
 
   // Format amount
   const formatAmount = (amount: number) => {
     return new Intl.NumberFormat('ko-KR').format(amount) + '잼';
+  };
+
+  // Format renewal period type label
+  const getRenewalPeriodTypeLabel = (value: RenewalPeriodType) => {
+    switch (value) {
+      case RenewalPeriodType.MONTHLY:
+        return '월 단위';
+      case RenewalPeriodType.QUARTERLY:
+        return '분기 단위';
+      case RenewalPeriodType.YEARLY:
+        return '연 단위';
+      default:
+        return value;
+    }
   };
 
 
@@ -85,6 +100,12 @@ export default function GroupTable({ data, isLoading, onEdit, onDelete }: GroupT
         header: '충전 잼',
         size: columnWidths.credits,
         cell: (info) => <div className="text-gray-600">{formatAmount(info.getValue())}</div>,
+      }),
+      columnHelper.accessor('renewalPeriodType', {
+        header: '갱신 주기',
+        size: columnWidths.renewalPeriodType,
+        enableSorting: false,
+        cell: (info) => <div className="text-gray-600">{getRenewalPeriodTypeLabel(info.getValue())}</div>,
       }),
       columnHelper.accessor('renewDate', {
         header: '충전일',
