@@ -13,19 +13,7 @@ export default function UsageChart() {
   // 차트 데이터 변환
   const chartData = React.useMemo(() => {
     if (!usageData?.monthlyUsage) {
-      // 기본 데이터 (로딩 중이거나 데이터가 없을 때)
-      return [
-        { name: '11월', value: 1000 },
-        { name: '12월', value: 0 },
-        { name: '1월', value: 0 },
-        { name: '2월', value: 0 },
-        { name: '3월', value: 0 },
-        { name: '4월', value: 0 },
-        { name: '5월', value: 0 },
-        { name: '6월', value: 0 },
-        { name: '7월', value: 0 },
-        { name: '8월', value: 0 },
-      ];
+      return [];
     }
 
     // GraphQL 데이터를 차트 형식으로 변환
@@ -51,7 +39,7 @@ export default function UsageChart() {
   // 평균 사용량 표시
   const averageUsage = usageData?.overallAverageUsage
     ? Math.round(usageData.overallAverageUsage).toLocaleString()
-    : '1,000';
+    : '0';
 
   // 마지막 업데이트 시간
   const lastUpdated = React.useMemo(() => {

@@ -2,8 +2,6 @@ import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Star } from 'lucide-react';
 import { format } from 'date-fns';
-import { Review } from '@/api/entities';
-import { useQuery } from '@tanstack/react-query';
 import { useRecentReviews } from '@/hooks/useRecentReviews';
 import { getCompanyId } from '@/lib/company';
 
@@ -17,14 +15,7 @@ export default function ReviewList() {
   const companyId = getCompanyId();
 
   // GraphQL로 최신 리뷰 조회
-  const { data: graphqlReviews, isLoading: isGraphqlLoading } = useRecentReviews(companyId, 30, 50);
-
-  // 기존 mock 데이터 (fallback용)
-  const { data: mockReviews } = useQuery({
-    queryKey: ['reviews'],
-    queryFn: () => Review.list('-date'),
-    initialData: [],
-  });
+  const { data: graphqlReviews } = useRecentReviews(companyId, 30, 50);
 
   // GraphQL 데이터를 기존 형식으로 변환
   const reviews = React.useMemo(() => {
@@ -37,9 +28,8 @@ export default function ReviewList() {
         date: review.createdAt,
       }));
     }
-    // GraphQL 데이터가 없으면 mock 데이터 사용
-    return mockReviews;
-  }, [graphqlReviews, mockReviews]);
+    return [];
+  }, [graphqlReviews]);
 
   const checkScroll = () => {
     if (scrollRef.current) {

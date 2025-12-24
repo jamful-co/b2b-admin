@@ -15,8 +15,8 @@ export default function AvailableJamCard() {
   const { data: creditSummary, isLoading } = useB2bCreditSummary(companyId);
 
   // 데이터 계산
-  const total = creditSummary?.totalCharged || 150000;
-  const current = creditSummary?.totalBalance || 101250;
+  const total = creditSummary?.totalCharged || 0;
+  const current = creditSummary?.totalBalance || 0;
   const percentage = total > 0 ? (current / total) * 100 : 0; // 남은 비율(디자인 기준)
 
   // 만료 예정일 포맷팅
@@ -26,7 +26,7 @@ export default function AvailableJamCard() {
         const expiryDate = new Date(creditSummary.expiringSoon.expiryDate);
         return `${format(expiryDate, 'yyyy.M.d')}일까지 사용 가능`;
       } catch {
-        return '2026.5.9일까지 사용 가능';
+        return '';
       }
     }
     // 가장 빠른 만료일 찾기
@@ -40,11 +40,11 @@ export default function AvailableJamCard() {
           const expiryDate = new Date(sortedCredits[0].expiryDate);
           return `${format(expiryDate, 'yyyy.M.d')}일까지 사용 가능`;
         } catch {
-          return '2026.5.9일까지 사용 가능';
+          return '';
         }
       }
     }
-    return '2026.5.9일까지 사용 가능';
+    return '';
   }, [creditSummary]);
 
   // 유효기간 목록(만료되지 않은 크레딧만, 빠른 만료일 순)
@@ -118,12 +118,7 @@ export default function AvailableJamCard() {
                   <ul className="list-disc pl-5 text-[#6C7885] text-[12px] leading-[1.4] whitespace-pre-wrap">
                     {credits.map(c => {
                       // 유효기간 날짜 포맷
-                      let formattedDate = '2026.5.9';
-                      try {
-                        formattedDate = format(new Date(c.expiryDate), 'yyyy.M.d');
-                      } catch {
-                        // 날짜 파싱 실패 시 기본값 사용
-                      }
+                      const formattedDate = format(new Date(c.expiryDate), 'yyyy.M.d');
 
                       return (
                         <li key={c.b2bCreditId}>

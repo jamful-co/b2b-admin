@@ -1,6 +1,5 @@
 import React from 'react';
-import { Stat, type Stat as StatType } from '@/api/entities';
-import { useQuery } from '@tanstack/react-query';
+import { type Stat as StatType } from '@/api/entities';
 import { Badge } from '@/components/ui/badge';
 import StatCard from '../components/dashboard/StatCard';
 import UsageChart from '../components/dashboard/UsageChart';
@@ -49,19 +48,6 @@ export default function Dashboard() {
   // GraphQL로 임직원 그룹 조회 (충전형 대시보드용)
   const { data: employeeGroupsData } = useEmployeeGroups(companyId);
 
-  const { data: stats = [] } = useQuery<StatType[]>({
-    queryKey: ['stats'],
-    queryFn: () => Stat.list(),
-    initialData: [],
-  });
-
-  const filteredStats = React.useMemo(() => {
-    return stats.filter((stat) => {
-      const statType = stat.dashboard_type || 'subscription';
-      return statType === dashboardType;
-    });
-  }, [stats, dashboardType]);
-
   // GraphQL 데이터로 통계 카드 생성
   const graphqlStats = React.useMemo(() => {
     if (dashboardType === 'subscription' && memberStats) {
@@ -105,19 +91,10 @@ export default function Dashboard() {
     return [];
   }, [memberStats, creditSummary, dashboardType]);
 
-  // GraphQL 데이터와 기존 데이터 병합
+  // GraphQL 데이터만 사용
   const mergedStats = React.useMemo(() => {
-    if (dashboardType === 'subscription' && graphqlStats.length > 0) {
-      // 구독형: GraphQL 데이터가 있으면 GraphQL 데이터 사용, 나머지는 기존 데이터에서 가져오기
-      const paymentDateStat = filteredStats.find((s) => s.type === 'payment_date');
-      return paymentDateStat ? [...graphqlStats, paymentDateStat] : graphqlStats;
-    } else if (dashboardType === 'recharge' && graphqlStats.length > 0) {
-      // 충전형: GraphQL 데이터로 total_participants, total_charged_jam 교체, 나머지는 기존 데이터 사용
-      const statsWithoutGraphql = filteredStats.filter((s) => s.type !== 'total_charged_jam' && s.type !== 'total_participants');
-      return [...statsWithoutGraphql, ...graphqlStats];
-    }
-    return filteredStats;
-  }, [graphqlStats, filteredStats, dashboardType]);
+    return graphqlStats;
+  }, [graphqlStats]);
 
   const sortedStats = React.useMemo(() => {
     const order: Record<string, number> =
