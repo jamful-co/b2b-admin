@@ -1,3 +1,5 @@
+import storage from '@/lib/storage';
+
 /**
  * Dashboard 타입 관련 유틸리티 함수
  */
@@ -13,30 +15,22 @@ export const SUPPORT_TYPE_PERIODIC_GRANT = 'PERIODIC_GRANT';
  * 로컬 스토리지에서 supportTypes를 가져오는 함수
  */
 export const getSupportTypes = (): string[] => {
-  const supportTypesStr = localStorage.getItem('supportTypes');
-  if (supportTypesStr) {
-    try {
-      return JSON.parse(supportTypesStr) as string[];
-    } catch (error) {
-      console.error('Failed to parse supportTypes:', error);
-      return [];
-    }
-  }
-  return [];
+  const supportTypes = storage.get<string[]>('supportTypes');
+  return supportTypes || [];
 };
 
 /**
  * supportTypes를 로컬 스토리지에 저장하는 함수
  */
 export const setSupportTypes = (supportTypes: string[]): void => {
-  localStorage.setItem('supportTypes', JSON.stringify(supportTypes));
+  storage.set('supportTypes', supportTypes);
 };
 
 /**
  * supportTypes를 로컬 스토리지에서 제거하는 함수
  */
 export const clearSupportTypes = (): void => {
-  localStorage.removeItem('supportTypes');
+  storage.remove('supportTypes');
 };
 
 /**

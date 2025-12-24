@@ -1,7 +1,8 @@
 import { GraphQLClient } from 'graphql-request';
+import storage from '@/lib/storage';
 
 // GraphQL 엔드포인트 설정
-const GRAPHQL_ENDPOINT = import.meta.env.VITE_GRAPHQL_ENDPOINT || 'http://localhost:3300/graphql';
+const GRAPHQL_ENDPOINT = import.meta.env.VITE_GRAPHQL_ENDPOINT || 'http://localhost:3301/graphql';
 
 // GraphQL 클라이언트 인스턴스 생성
 export const graphqlClient = new GraphQLClient(GRAPHQL_ENDPOINT, {
@@ -29,7 +30,7 @@ export const clearAuthToken = () => {
  * 로컬 스토리지에서 토큰을 가져와 헤더에 설정하는 함수
  */
 export const initializeAuthToken = () => {
-  const token = localStorage.getItem('token');
+  const token = storage.get<string>('token');
   if (token) {
     setAuthToken(token);
   }

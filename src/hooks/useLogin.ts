@@ -3,6 +3,7 @@ import { graphqlClient, setAuthToken } from '@/lib/graphql-client';
 import { LOGIN_MUTATION } from '@/graphql/mutations/auth';
 import { LoginResponse, LoginVariables } from '@/graphql/types';
 import { setCompanyId } from '@/lib/company';
+import storage from '@/lib/storage';
 
 /**
  * 로그인 mutation을 실행하는 함수
@@ -39,9 +40,9 @@ export const useLogin = () => {
     mutationFn: loginMutation,
     onSuccess: (data) => {
       // 토큰을 로컬 스토리지에 저장
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      localStorage.setItem('isAuthenticated', 'true');
+      storage.set('token', data.token);
+      storage.set('user', data.user);
+      storage.set('isAuthenticated', 'true');
 
       // GraphQL 클라이언트에 인증 토큰 설정
       setAuthToken(data.token);
@@ -53,7 +54,7 @@ export const useLogin = () => {
 
       // supportTypes를 로컬 스토리지에 저장
       if (data.supportTypes && data.supportTypes.length > 0) {
-        localStorage.setItem('supportTypes', JSON.stringify(data.supportTypes));
+        storage.set('supportTypes', data.supportTypes);
       }
     },
   });

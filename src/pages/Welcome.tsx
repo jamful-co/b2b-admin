@@ -49,12 +49,6 @@ export default function WelcomePage() {
 
   return (
     <div className="min-h-screen bg-white relative w-full">
-      {/* 상단 헤더 바 */}
-      <div className="absolute top-0 right-0 h-[42px] w-full bg-[#FBFBFB] border-b border-[#F1F1F0] flex items-center justify-end px-6">
-        <div className="w-8 h-8 relative overflow-hidden">
-          <User className="w-full h-full text-[#2E3A49]" />
-        </div>
-      </div>
 
       {/* 메인 콘텐츠 */}
       <div className="absolute top-[42px] left-0 w-full min-h-[calc(100vh-42px)] flex items-center justify-center">

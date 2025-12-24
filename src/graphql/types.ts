@@ -7,6 +7,7 @@
  */
 export interface User {
   userId: string;
+  email: string;
   companyId: number;
 }
 
@@ -545,6 +546,18 @@ export interface UpdateEmployeeStatusVariables {
 // ============================================
 
 /**
+ * 갱신 주기 타입
+ */
+export enum RenewalPeriodType {
+  /** 월 단위 */
+  MONTHLY = 'MONTHLY',
+  /** 분기 단위 */
+  QUARTERLY = 'QUARTERLY',
+  /** 연 단위 */
+  YEARLY = 'YEARLY',
+}
+
+/**
  * 임직원 그룹 데이터
  */
 export interface EmployeeGroupData {
@@ -576,6 +589,10 @@ export interface EmployeeGroupData {
    * 크레딧 이월 비율 (0-100)
    */
   rolloverPercentage: number;
+  /**
+   * 갱신 주기 타입
+   */
+  renewalPeriodType: RenewalPeriodType;
   /**
    * 그룹 인원 수
    */
@@ -614,6 +631,10 @@ export interface CreateEmployeeGroupInput {
    * 크레딧 이월 비율 (0-100)
    */
   rolloverPercentage?: number;
+  /**
+   * 갱신 주기 타입
+   */
+  renewalPeriodType?: RenewalPeriodType;
 }
 
 /**
@@ -651,6 +672,10 @@ export interface UpdateEmployeeGroupInput {
    * 크레딧 이월 비율 (0-100)
    */
   rolloverPercentage?: number;
+  /**
+   * 갱신 주기 타입
+   */
+  renewalPeriodType?: RenewalPeriodType;
   /**
    * 활성화 여부
    */

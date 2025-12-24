@@ -2,12 +2,11 @@ import { graphqlClient, clearAuthToken, setAuthToken } from '@/lib/graphql-clien
 import { LOGIN_MUTATION } from '@/graphql/mutations/auth';
 import { LoginResponse } from '@/graphql/types';
 import { setCompanyId, clearCompanyId } from '@/lib/company';
+import storage from '@/lib/storage';
 
-// 기존 User 인터페이스 유지 (하위 호환성)
 export interface User {
   id: string;
   email: string;
-  full_name: string;
 }
 
 export const auth = {
@@ -24,8 +23,8 @@ export const auth = {
       console.log('Login successful:', data.login);
 
       // 토큰과 사용자 정보를 로컬 스토리지에 저장
-      localStorage.setItem('token', token);
-      localStorage.setItem('isAuthenticated', 'true');
+      storage.set('token', token);
+      storage.set('isAuthenticated', 'true');
 
       // GraphQL 클라이언트에 인증 토큰 설정
       setAuthToken(token);
@@ -37,18 +36,12 @@ export const auth = {
 
       // supportTypes 저장
       if (supportTypes && supportTypes.length > 0) {
-        localStorage.setItem('supportTypes', JSON.stringify(supportTypes));
+        storage.set('supportTypes', supportTypes);
       }
 
-      // 기존 User 인터페이스 형식으로 변환하여 저장
-      const legacyUser: User = {
-        id: user.userId,
-        email: email,
-        full_name: email.split('@')[0], // 임시로 이메일 prefix 사용
-      };
-      localStorage.setItem('user', JSON.stringify(legacyUser));
+      storage.set('user', user);
 
-      return legacyUser;
+      return user;
     } catch (error) {
       console.error('Login failed:', error);
       throw error;
@@ -57,10 +50,10 @@ export const auth = {
 
   async logout(): Promise<void> {
     // Clear any stored tokens
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('isAuthenticated');
-    localStorage.removeItem('supportTypes');
+    storage.remove('token');
+    storage.remove('user');
+    storage.remove('isAuthenticated');
+    storage.remove('supportTypes');
 
     // GraphQL 클라이언트에서 인증 토큰 제거
     clearAuthToken();
@@ -72,15 +65,14 @@ export const auth = {
   },
 
   async me(): Promise<User> {
-    const user = localStorage.getItem('user');
+    const user = storage.get<User>('user');
     if (user) {
-      return JSON.parse(user) as User;
+      return user;
     }
     throw new Error('Not authenticated');
   },
 
-  async isAuthenticated(): Promise<boolean> {
-    const isAuth = localStorage.getItem('isAuthenticated');
-    return isAuth === 'true';
+  async isAuthenticated():Promise<boolean> {
+    return storage.get<boolean>('isAuthenticated');
   },
 };
