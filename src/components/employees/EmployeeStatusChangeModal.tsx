@@ -236,6 +236,7 @@ export default function EmployeeStatusChangeModal({
           approverId: companyId,
           leaveDate: resignationDate ? format(resignationDate, 'yyyy-MM-dd') : undefined,
           employeeGroupId: selectedGroupId ?? undefined,
+          rejectionReason: action === EmployeeStatusAction.REJECT ? '어드민 거절' : undefined,
         },
       },
       {

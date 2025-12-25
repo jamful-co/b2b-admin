@@ -86,6 +86,11 @@ export default function Dashboard() {
           value: creditSummary.totalCharged.toLocaleString(),
           dashboard_type: 'recharge',
         },
+        {
+          id: 'gql-total-charged-jam',
+          label: '잼 지급일',
+          value: '임직원별로 상이',
+        },
       ];
     }
     return [];

@@ -1,9 +1,10 @@
 import React, { useEffect, useState, ReactNode } from 'react';
 import Sidebar from '../components/layout/Sidebar';
-import { UserCircle, LogOut } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { auth, User } from '@/api/auth';
 import { Loader2 } from 'lucide-react';
+import UserIcon from '@/assets/icons/user.svg';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -68,7 +69,7 @@ export default function Layout({ children }: LayoutProps) {
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top App Bar */}
         <header
-          className="h-16 flex items-center justify-end px-8 z-10"
+          className="h-[42px] flex items-center justify-end px-8 z-10"
           style={{
             borderBottom: '1px solid var(--border-light, #F1F1F0)',
             background: 'var(--warm-neutral-25, #FBFBFB)'
@@ -80,7 +81,7 @@ export default function Layout({ children }: LayoutProps) {
                 className="text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
                 title="User Menu"
               >
-                <UserCircle className="w-8 h-8" />
+                <img src={UserIcon} alt="User" className="w-8 h-8" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
@@ -88,7 +89,7 @@ export default function Layout({ children }: LayoutProps) {
               <DropdownMenuSeparator />
               <div className="px-2 py-1.5 text-sm">
                 <div className="font-medium text-gray-900">
-                  {currentUser?.full_name || '사용자'}
+                  {currentUser?.name || '사용자'}
                 </div>
                 <div className="text-xs text-gray-500 truncate">{currentUser?.email}</div>
               </div>

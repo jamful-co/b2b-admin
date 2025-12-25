@@ -6,7 +6,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
 import { SimpleSelect } from '@/components/ui/select';
 import { type EmployeeTableData } from '@/graphql/types';
 import { useEmployeeGroups, useAssignEmployeeToGroup, useUnassignEmployeeFromGroup } from '@/hooks/useEmployeeGroup';
@@ -114,36 +113,40 @@ export default function EmployeeGroupChangeModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[500px] p-6">
-        <DialogHeader>
-          <DialogTitle className="text-lg font-bold text-gray-900">그룹 변경</DialogTitle>
+      <DialogContent className="w-[390px] max-w-[400px] rounded-[16px] bg-white p-6 gap-4 sm:max-w-none sm:rounded-[16px]">
+        <DialogHeader className="space-y-0">
+          <DialogTitle className="text-[22px] font-semibold leading-[1.4] text-[#141414]">
+            그룹 변경
+          </DialogTitle>
         </DialogHeader>
 
-        {/* 그룹 선택 */}
-        <div className="space-y-2">
-          <Label htmlFor="group" className="text-sm font-medium text-gray-900">
-            그룹*
-          </Label>
-          <SimpleSelect
-            value={selectedValue}
-            onValueChange={handleGroupChange}
-            items={groupItems}
-            placeholder="그룹을 선택해주세요"
-            disabled={isLoadingGroups}
-          />
+        <div className="space-y-4">
+          {/* 그룹 선택 */}
+          <div>
+            <p className="text-sm font-semibold leading-[1.4] text-[#141414] mb-2">
+              그룹*
+            </p>
+            <SimpleSelect
+              value={selectedValue}
+              onValueChange={handleGroupChange}
+              items={groupItems}
+              placeholder="그룹을 선택해주세요"
+              disabled={isLoadingGroups}
+            />
+          </div>
         </div>
 
-        <div className="flex gap-3 mt-6">
+        <div className="flex gap-4 mt-4">
           <Button
             variant="outline"
-            className="flex-1 h-11 border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-700"
+            className="flex-1 h-[44px] rounded-[4px] border border-[#CDD3DB] bg-white px-6 py-3 text-sm font-semibold leading-[1.4] text-[#6C7885] hover:bg-white"
             onClick={onClose}
             disabled={assignToGroupMutation.isPending || unassignFromGroupMutation.isPending}
           >
             취소
           </Button>
           <Button
-            className="flex-1 h-11 bg-[#282821] text-white hover:bg-[#282821]/90"
+            className="flex-1 h-[44px] rounded-[4px] px-6 py-3 text-sm font-semibold leading-[1.4] bg-[#141414] text-white hover:bg-[#141414]/90"
             onClick={handleSave}
             disabled={assignToGroupMutation.isPending || unassignFromGroupMutation.isPending || selectedValue === ''}
           >

@@ -1,11 +1,13 @@
 import { useMemo } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { createPageUrl, getLogoUrlFromSubdomain } from '@/utils';
-import { Home, Users, List, Receipt } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { hasBothDashboardTypes, getDefaultDashboardType } from '@/lib/dashboard';
+import HomeIcon from '@/assets/icons/home.svg';
+import UsersIcon from '@/assets/icons/users.svg';
+import GroupIcon from '@/assets/icons/group.svg';
 
 export default function Sidebar() {
   const location = useLocation();
@@ -20,9 +22,9 @@ export default function Sidebar() {
   const showDashboardSwitcher = hasBothDashboardTypes();
 
   const menuItems = [
-    { label: '홈', icon: Home, path: '/dashboard' },
-    { label: '임직원 관리', icon: Users, path: '/employees' },
-    { label: '그룹 관리', icon: List, path: '/groups' },
+    { label: '홈', icon: HomeIcon, path: '/dashboard' },
+    { label: '임직원 관리', icon: UsersIcon, path: '/employees' },
+    { label: '그룹 관리', icon: GroupIcon, path: '/groups' },
     // { label: '정산 관리', icon: Receipt, path: '/settlements' },
   ];
 
@@ -105,7 +107,7 @@ export default function Sidebar() {
                 }
               }}
             >
-              <item.icon className={cn('w-5 h-5', isActive ? 'text-gray-900' : 'text-gray-400')} />
+              <img src={item.icon} alt={item.label} className="w-5 h-5" />
               {item.label}
             </Link>
           );

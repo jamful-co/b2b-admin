@@ -124,7 +124,7 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
     join_date: 122,
     resignation_date: 150,
     membership_start_date: 150,
-    employment_status: 160,
+    employment_status: 180,
     group_name: 150,
   };
 
