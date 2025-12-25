@@ -23,7 +23,7 @@ export default function Layout({ children }: LayoutProps) {
   const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const isWelcomePage = location.pathname === '/welcome';
+  const isWelcomePage = location.pathname === '/welcome' || location.pathname === '/';
 
   useEffect(() => {
     const checkAuth = async () => {
