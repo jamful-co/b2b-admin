@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ArrowUpDown, ArrowUp, ArrowDown, Pencil } from 'lucide-react';
 import { TablePagination } from '@/components/ui/table-pagination';
 import { format } from 'date-fns';
@@ -147,13 +148,32 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
         size: columnWidths.select,
         enableResizing: false,
         header: '선택',
-        cell: ({ row }) => (
-          <Checkbox
-            checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
-            aria-label="Select row"
-          />
-        ),
+        cell: ({ row }) => {
+          const hasUserId = !!row.original.userId;
+          const checkbox = (
+            <Checkbox
+              checked={row.getIsSelected()}
+              onCheckedChange={(value) => row.toggleSelected(!!value)}
+              aria-label="Select row"
+              disabled={!hasUserId}
+            />
+          );
+
+          if (!hasUserId) {
+            return (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="inline-flex">{checkbox}</div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>잼플에 가입하지 않은 임직원입니다</p>
+                </TooltipContent>
+              </Tooltip>
+            );
+          }
+
+          return checkbox;
+        },
       }),
       columnHelper.accessor('employeeNumber', {
         header: '사번',
@@ -188,6 +208,10 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
         header: '잼 잔여량',
         size: columnWidths.jam_balance,
         cell: ({ row }) => {
+          const hasUserId = !!row.original.userId;
+          if (!hasUserId) {
+            return <div />;
+          }
           const balance = row.original.balanceJams;
           const capacity = row.original.totalJams || 100000;
           const percentage = (balance / capacity) * 100;
@@ -248,6 +272,18 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
         size: columnWidths.employment_status,
         cell: ({ row }) => {
           const status = row.original.status as EmployeeStatus;
+          const hasUserId = !!row.original.userId;
+          const editButton = (
+            <button
+              onClick={() => setStatusChangingEmployee(row.original)}
+              className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-gray-400"
+              aria-label="상태 변경"
+              disabled={!hasUserId}
+            >
+              <Pencil className="h-4 w-4" />
+            </button>
+          );
+
           return (
             <div className="flex items-center justify-between gap-2 min-w-0">
               <div className="flex-1 min-w-0">
@@ -255,13 +291,16 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
                   {employeeStatusLabel[status]}
                 </span>
               </div>
-              <button
-                onClick={() => setStatusChangingEmployee(row.original)}
-                className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
-                aria-label="상태 변경"
-              >
-                <Pencil className="h-4 w-4" />
-              </button>
+              {!hasUserId ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>{editButton}</TooltipTrigger>
+                  <TooltipContent>
+                    <p>잼플에 가입하지 않은 임직원입니다</p>
+                  </TooltipContent>
+                </Tooltip>
+              ) : (
+                editButton
+              )}
             </div>
           );
         },
@@ -269,20 +308,37 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
       columnHelper.accessor('groupName', {
         header: '그룹',
         size: columnWidths.group_name,
-        cell: ({ row }) => (
-          <div className="flex items-center justify-between gap-2 min-w-0">
-            <span className="text-gray-600 flex-1 min-w-0 truncate">
-              {row.original.groupName || '그룹 없음'}
-            </span>
+        cell: ({ row }) => {
+          const hasUserId = !!row.original.userId;
+          const editButton = (
             <button
               onClick={() => setGroupChangingEmployee(row.original)}
-              className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
+              className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-gray-400"
               aria-label="그룹 변경"
+              disabled={!hasUserId}
             >
               <Pencil className="h-4 w-4" />
             </button>
-          </div>
-        ),
+          );
+
+          return (
+            <div className="flex items-center justify-between gap-2 min-w-0">
+              <span className="text-gray-600 flex-1 min-w-0 truncate">
+                {row.original.groupName || '그룹 없음'}
+              </span>
+              {!hasUserId ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>{editButton}</TooltipTrigger>
+                  <TooltipContent>
+                    <p>잼플에 가입하지 않은 임직원입니다</p>
+                  </TooltipContent>
+                </Tooltip>
+              ) : (
+                editButton
+              )}
+            </div>
+          );
+        },
       }),
     ],
     [columnWidths]
@@ -341,7 +397,8 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
   const currentPage = table.getState().pagination.pageIndex + 1;
 
   return (
-    <div className="flex flex-col h-full bg-white">
+    <TooltipProvider>
+      <div className="flex flex-col h-full bg-white">
       {/* Toolbar */}
       <div className="py-4 flex items-center justify-between gap-4 bg-white">
         <div className="flex items-center gap-3 flex-1">
@@ -540,5 +597,6 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
         onPageChange={(page) => table.setPageIndex(page - 1)}
       />
     </div>
+    </TooltipProvider>
   );
 }
