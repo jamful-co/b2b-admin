@@ -96,6 +96,7 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
   const [statusChangingEmployee, setStatusChangingEmployee] = useState<EmployeeTableData | null>(null);
   const [groupChangingEmployee, setGroupChangingEmployee] = useState<EmployeeTableData | null>(null);
   const [statusFilter, setStatusFilter] = useState('all');
+  const [groupFilter, setGroupFilter] = useState('all');
 
   // Scroll State
   const [isScrolled, setIsScrolled] = useState(false);
@@ -129,16 +130,43 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
     group_name: 150,
   };
 
-  // 상태 필터링이 적용된 데이터
+  // 그룹 목록 생성
+  const groupList = useMemo(() => {
+    const groups = new Set<string>();
+    data.forEach((item) => {
+      if (item.groupName) {
+        groups.add(item.groupName);
+      }
+    });
+    return Array.from(groups).sort();
+  }, [data]);
+
+  // 상태 및 그룹 필터링이 적용된 데이터
   const filteredData = useMemo(() => {
-    if (statusFilter === 'all') return data;
-    if (statusFilter === 'default') {
-      return data.filter((item) => {
-        return item.status === EmployeeStatus.ACTIVE || item.status === EmployeeStatus.LEAVING;
-      });
+    let result = data;
+
+    // 상태 필터링
+    if (statusFilter !== 'all') {
+      if (statusFilter === 'default') {
+        result = result.filter((item) => {
+          return item.status === EmployeeStatus.ACTIVE || item.status === EmployeeStatus.LEAVING;
+        });
+      } else {
+        result = result.filter((item) => item.status === statusFilter);
+      }
     }
-    return data.filter((item) => item.status === statusFilter);
-  }, [data, statusFilter]);
+
+    // 그룹 필터링
+    if (groupFilter !== 'all') {
+      if (groupFilter === 'none') {
+        result = result.filter((item) => !item.groupName);
+      } else {
+        result = result.filter((item) => item.groupName === groupFilter);
+      }
+    }
+
+    return result;
+  }, [data, statusFilter, groupFilter]);
 
   // TanStack Table 컬럼 정의
   const columns = useMemo(
@@ -202,7 +230,7 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
       columnHelper.accessor('email', {
         header: '이메일',
         size: columnWidths.email,
-        cell: (info) => <div className="truncate">{info.getValue()}</div>,
+        cell: (info) => <div className="truncate">{info.getValue() || '-'}</div>,
       }),
       columnHelper.accessor('balanceJams', {
         header: '잼 잔여량',
@@ -226,16 +254,6 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
             </div>
           );
         },
-      }),
-      columnHelper.accessor('joinDate', {
-        header: '입사일',
-        size: columnWidths.join_date,
-        sortingFn: dateSortingFn,
-        cell: (info) => (
-          <div className="truncate">
-            {info.getValue() ? format(new Date(info.getValue()), 'yyyy-MM-dd') : '-'}
-          </div>
-        ),
       }),
       columnHelper.accessor('leaveDate', {
         header: '퇴사일',
@@ -375,9 +393,10 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
       const search = filterValue.toLowerCase();
       return (
         (row.original.name || '').toLowerCase().includes(search) ||
-        row.original.employeeNumber.toLowerCase().includes(search) ||
-        (row.original.phoneNumber || '').toLowerCase().includes(search) ||
-        row.original.email.toLowerCase().includes(search)
+        (row.original.employeeNumber || '').toLowerCase().includes(search) ||
+        (row.original.email || '').toLowerCase().includes(search) ||
+        (row.original.groupName || '').toLowerCase().includes(search) ||
+        (row.original.phoneNumber || '').toLowerCase().includes(search)
       );
     },
   });
@@ -413,6 +432,18 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
               { value: EmployeeStatus.REJECTED, label: '승인 거절' },
             ]}
             placeholder="전체 상태"
+            triggerClassName="w-[120px]"
+          />
+
+          <SimpleSelect
+            value={groupFilter}
+            onValueChange={setGroupFilter}
+            items={[
+              { value: 'all', label: '전체 그룹' },
+              { value: 'none', label: '그룹 없음' },
+              ...groupList.map((group) => ({ value: group, label: group })),
+            ]}
+            placeholder="전체 그룹"
             triggerClassName="w-[120px]"
           />
 

@@ -11,7 +11,8 @@ import { Calendar } from '@/components/ui/calendar';
 import { Input } from '@/components/ui/input';
 import { EmployeeStatus } from '@/api/entities';
 import { format, parse } from 'date-fns';
-import { AlertCircle, CalendarIcon, X } from 'lucide-react';
+import { CalendarIcon, X } from 'lucide-react';
+import WarningIcon from '@/assets/icons/warning.svg?react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useUpdateEmployeeStatus } from '@/hooks/useUpdateEmployeeStatus';
@@ -369,7 +370,7 @@ export default function EmployeeStatusChangeModal({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="w-[390px] max-w-[400px] rounded-[16px] bg-white p-6 gap-4 sm:max-w-none sm:rounded-[16px]">
+        <DialogContent className="w-[420px] max-w-[420px] rounded-[16px] bg-white p-6 gap-4 sm:max-w-none sm:rounded-[16px]">
           <DialogHeader className="space-y-0">
             <DialogTitle className="text-[22px] font-semibold leading-[1.4] text-[#141414]">
               상태 변경
@@ -516,9 +517,11 @@ export default function EmployeeStatusChangeModal({
                 </div>
 
                 {/* 경고 문구 */}
-                <div className="flex items-start gap-2 text-[13px] leading-[1.4] text-[#6C7885]">
-                  <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0 text-[#F97066]" />
-                  <span>퇴사일 이후 해당 사원은 서비스 사용이 불가합니다.</span>
+                <div className="flex items-center gap-[10px] px-4 py-3 rounded-[8px] bg-[#FEF3F2]">
+                  <WarningIcon className="h-6 w-6 flex-shrink-0" />
+                  <p className="text-[14px] leading-[1.4] text-[#F04438]">
+                    퇴사로 변경 시, 재직중으로 다시 변경할 수 없습니다.
+                  </p>
                 </div>
               </div>
             )}
