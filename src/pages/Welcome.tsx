@@ -120,6 +120,11 @@ export default function WelcomePage() {
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && canLogin && !isLoading) {
+                        handleLogin(e as any);
+                      }
+                    }}
                     className="h-11 px-3 pr-10 border-[#E3E7EC] focus-visible:ring-1 focus-visible:ring-[#2E3A49] rounded-sm"
                     placeholder=""
                     required
