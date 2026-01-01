@@ -156,7 +156,7 @@ export default function Dashboard() {
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex items-center gap-3">
-        <h1 style={{ fontSize: '22px', fontWeight: 600 }}>12월 잼플 복지 운영 현황</h1>
+        <h1 style={{ fontSize: '22px', fontWeight: 600 }}>{`${new Date().getMonth()}월`} 잼플 복지 운영 현황</h1>
         <Badge
           className="text-gray-900 hover:bg-[var(--lemon-lemon-300,#FFFA97)] border-0"
           style={{
