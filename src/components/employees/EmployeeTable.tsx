@@ -250,7 +250,7 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
                 className="h-2 w-24 bg-gray-100"
                 indicatorClassName="bg-[#FEE666]"
               />
-              <span className="text-xs font-bold text-gray-700">{Math.round(percentage)}%</span>
+              <span className="text-xs font-bold text-gray-700">{balance.toLocaleString()}/{capacity.toLocaleString()}</span>
             </div>
           );
         },
