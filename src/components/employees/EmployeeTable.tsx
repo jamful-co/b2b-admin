@@ -241,7 +241,7 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
             return <div />;
           }
           const balance = row.original.balanceJams;
-          const capacity = row.original.totalJams || 100000;
+          const capacity = row.original.totalJams || 0;
           const percentage = (balance / capacity) * 100;
           return (
             <div className="flex items-center gap-3">
