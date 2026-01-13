@@ -149,7 +149,7 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
     if (statusFilter !== 'all') {
       if (statusFilter === 'default') {
         result = result.filter((item) => {
-          return item.status === EmployeeStatus.ACTIVE || item.status === EmployeeStatus.LEAVING;
+          return item.status === EmployeeStatus.ACTIVE || item.status === EmployeeStatus.LEAVING || item.status === EmployeeStatus.PENDING;
         });
       } else {
         result = result.filter((item) => item.status === statusFilter);
