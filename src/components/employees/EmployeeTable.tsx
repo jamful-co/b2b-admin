@@ -95,7 +95,7 @@ export default function EmployeeTable({ data }: EmployeeTableProps) {
   const [editingEmployee, setEditingEmployee] = useState<EmployeeTableData | null>(null);
   const [statusChangingEmployee, setStatusChangingEmployee] = useState<EmployeeTableData | null>(null);
   const [groupChangingEmployee, setGroupChangingEmployee] = useState<EmployeeTableData | null>(null);
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('default');
   const [groupFilter, setGroupFilter] = useState('all');
 
   // Scroll State
